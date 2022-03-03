@@ -1,20 +1,20 @@
 {
-    "name": "r3h6/typo3-webtesting",
-    "description": "Webtests for TYPO3",
-    "type": "library",
-    "require": {
-        "symfony/browser-kit": "^5.4",
-        "typo3/testing-framework": "^6.16"
-    },
-    "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "R3H6\\Typo3Webtesting\\": "src/"
-        }
-    },
-    "autoload-dev": {
+	"name": "r3h6/typo3-browserkit-testing",
+	"description": "BrowserKit testing for TYPO3",
+	"require": {
+		"symfony/browser-kit": "^5.4",
+		"typo3/testing-framework": "^6.15",
+		"symfony/css-selector": "^5.4"
+	},
+	"license": "MIT",
+	"autoload": {
 		"psr-4": {
-			"R3H6\\Typo3Webtesting\\Tests\\": "tests/"
+			"R3H6\\Typo3BrowserkitTesting\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"R3H6\\Typo3BrowserkitTesting\\Tests\\": "tests/"
 		}
 	},
 	"config": {
@@ -32,7 +32,7 @@
 			"web-dir": ".Build/public"
 		}
 	},
-    "require-dev": {
-        "typo3/cms-fluid-styled-content": "^11.5"
-    }
+	"require-dev": {
+		"typo3/cms-fluid-styled-content": "^11.5"
+	}
 }

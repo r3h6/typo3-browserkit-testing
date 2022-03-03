@@ -1,10 +1,10 @@
 <?php
 
-namespace R3H6\Typo3Webtesting\Tests\Functional;
+namespace R3H6\Typo3BrowserkitTesting\Tests\Functional;
 
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use R3H6\Typo3Webtesting\BrowserKitTestCase;
+use R3H6\Typo3BrowserkitTesting\BrowserKitTestCase;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 
 class WebtestTest extends BrowserKitTestCase
