@@ -29,18 +29,30 @@ class Client extends AbstractBrowser
      */
     protected function doRequest($request)
     {
-        $typo3Request = new InternalRequest($request->getUri());
-        if ($request->getMethod() !== 'GET') {
-            $typo3Request = $typo3Request->withMethod($request->getMethod());
-        }
-        if ($request->getMethod() === 'POST' && $request->getContent() === null) {
-//            \TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($request, '', 99, true); exit;
-            $typo3Request = $typo3Request->withAddedHeader('Content-Type', 'application/x-www-form-urlencoded');
-            $typo3Request = $typo3Request->withBody(stream_for(http_build_query($request->getParameters())));
-        }
+        $redirects = [];
+        do {
+            $typo3Request = new InternalRequest($request->getUri());
+            if ($request->getMethod() !== 'GET') {
+                $typo3Request = $typo3Request->withMethod($request->getMethod());
+            }
+            if ($request->getMethod() === 'POST' && $request->getContent() === null) {
+                $typo3Request = $typo3Request->withAddedHeader('Content-Type', 'application/x-www-form-urlencoded');
+                $typo3Request = $typo3Request->withBody(stream_for(http_build_query($request->getParameters())));
+            }
 
-        $typo3Response = $this->testCase->executeFrontendRequest($typo3Request, null);
-\TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($typo3Response->getHeaders(), '', 99, true);
+            $typo3Response = $this->testCase->executeFrontendRequest($typo3Request, null, true);
+
+            $request = null;
+            // Handle extbase redirects
+            if (preg_match('#<head><meta http-equiv="refresh" content="0;url=(?P<url>[^"]+)"/></head></html>#si', (string)$typo3Response->getBody(), $matches)) {
+                $redirectUrl = rawurldecode(html_entity_decode($matches['url']));
+                if (in_array($redirectUrl, $redirects, true)) {
+                    throw new \RuntimeException('Loop detected for ' . $redirectUrl, 1646316092331);
+                }
+                $redirects[] = $redirectUrl;
+                $request = new Request($redirectUrl, 'GET');
+            }
+        } while($request);
 
         return new Response(
             (string)$typo3Response->getBody(),
@@ -48,4 +60,5 @@ class Client extends AbstractBrowser
             $typo3Response->getHeaders()
         );
     }
+
 }
