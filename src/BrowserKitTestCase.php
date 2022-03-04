@@ -8,4 +8,10 @@ class BrowserKitTestCase extends FunctionalTestCase implements BrowserKitAwareIn
 {
     use BrowserKitTrait;
     use DomCrawlerAssertionsTrait;
+    
+    public function tearDown(): void
+    {
+        parent::tearDown();
+        static::$client = null;
+    }
 }
