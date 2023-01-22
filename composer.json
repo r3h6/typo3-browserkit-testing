@@ -4,8 +4,7 @@
 	"require": {
 		"symfony/browser-kit": "^5.4",
 		"typo3/testing-framework": "^6.15",
-		"symfony/css-selector": "^5.4",
-		"guzzlehttp/guzzle": "^7.3"
+		"symfony/css-selector": "^5.4"
 	},
 	"license": "MIT",
 	"autoload": {
