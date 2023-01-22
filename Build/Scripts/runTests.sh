@@ -17,12 +17,12 @@ case $SUITE in
         docker-compose run composer $ARGS
     ;;
     unit)
-        ARGS=${ARGS:-Tests/Unit/}
+        ARGS=${ARGS:-tests/Unit/}
         docker-compose run unit -c .Build/vendor/typo3/testing-framework/Resources/Core/Build/UnitTests.xml $ARGS
     ;;
     functional)
         rm -rf .Build/web/typo3temp/var/tests/
-        ARGS=${ARGS:-Tests/Functional/}
+        ARGS=${ARGS:-tests/Functional/}
         ARGS="-c .Build/vendor/typo3/testing-framework/Resources/Core/Build/FunctionalTests.xml $ARGS"
         docker-compose run functional $ARGS
     ;;

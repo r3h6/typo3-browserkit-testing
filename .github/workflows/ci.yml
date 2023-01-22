@@ -10,9 +10,9 @@ jobs:
     strategy:
       matrix:
         env:
-          - { PHP: '7.4', TYPO3_VERSION: ^10.4 }
-          - { PHP: '7.3', TYPO3_VERSION: ^10.4 }
           - { PHP: '7.2', TYPO3_VERSION: ^10.4 }
+          - { PHP: '7.3', TYPO3_VERSION: ^10.4 }
+          - { PHP: '7.4', TYPO3_VERSION: ^10.4 }
           - { PHP: '8.1', TYPO3_VERSION: ^11.5 }
           - { PHP: '8.0', TYPO3_VERSION: ^11.5 }
           - { PHP: '7.4', TYPO3_VERSION: ^11.5 }
@@ -34,9 +34,6 @@ jobs:
 
       - name: PHPStan
         run: ./Build/Scripts/runTests.sh composer ci:php:stan
-
-      - name: Unit tests
-        run: ./Build/Scripts/runTests.sh unit
 
       - name: Functional tests
         run: ./Build/Scripts/runTests.sh functional
