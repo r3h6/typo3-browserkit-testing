@@ -24,4 +24,4 @@ You can find details on [Symfony's Testing Documentation](https://symfony.com/do
 ❌ Request Assertions<br>
 ❌ Browser Assertions<br>
 ✅ Crawler Assertions<br>
-❌ Mailer Assertions<br>
+✅ Mailer Assertions<br>

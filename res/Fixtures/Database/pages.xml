@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dataset>
+	<pages>
+		<uid>1</uid>
+		<pid>0</pid>
+		<title>Root</title>
+		<sorting>128</sorting>
+		<deleted>0</deleted>
+		<perms_everybody>15</perms_everybody>
+		<slug>/</slug>
+	</pages>
+	<pages>
+		<uid>2</uid>
+		<pid>1</pid>
+		<sorting>128</sorting>
+		<title>Dummy 1-2</title>
+		<deleted>0</deleted>
+		<perms_everybody>15</perms_everybody>
+		<slug>/page2</slug>
+	</pages>
+	<pages>
+		<uid>3</uid>
+		<pid>2</pid>
+		<sorting>128</sorting>
+		<title>Dummy 1-2-3</title>
+		<deleted>0</deleted>
+		<perms_everybody>15</perms_everybody>
+		<slug>/page2/page3</slug>
+	</pages>
+	<pages>
+		<uid>4</uid>
+		<pid>3</pid>
+		<sorting>128</sorting>
+		<title>Dummy 1-2-3-4</title>
+		<deleted>0</deleted>
+		<perms_everybody>15</perms_everybody>
+		<slug>/page2/page3/page4</slug>
+	</pages>
+	<pages>
+		<uid>5</uid>
+		<pid>1</pid>
+		<sorting>256</sorting>
+		<title>Dummy 1-5</title>
+		<deleted>0</deleted>
+		<perms_everybody>15</perms_everybody>
+		<slug>/page5</slug>
+	</pages>
+	<pages>
+		<uid>6</uid>
+		<pid>5</pid>
+		<sorting>128</sorting>
+		<title>Dummy 1-5-6</title>
+		<deleted>0</deleted>
+		<perms_everybody>15</perms_everybody>
+		<slug>/page5/page6</slug>
+	</pages>
+	<pages>
+		<uid>7</uid>
+		<pid>0</pid>
+		<sorting>256</sorting>
+		<title>Root 2</title>
+		<deleted>0</deleted>
+		<perms_everybody>15</perms_everybody>
+	</pages>
+</dataset>

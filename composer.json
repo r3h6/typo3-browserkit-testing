@@ -4,7 +4,8 @@
 	"require": {
 		"symfony/browser-kit": "^5.4",
 		"typo3/testing-framework": "^6.15",
-		"symfony/css-selector": "^5.4"
+		"symfony/css-selector": "^5.4",
+		"guzzlehttp/guzzle": "^7.3"
 	},
 	"license": "MIT",
 	"autoload": {
@@ -19,12 +20,18 @@
 	},
 	"config": {
 		"vendor-dir": ".Build/vendor",
-		"bin-dir": ".Build/bin"
+		"bin-dir": ".Build/bin",
+		"allow-plugins": {
+			"typo3/cms-composer-installers": true,
+			"typo3/class-alias-loader": true
+		}
 	},
 	"scripts": {
 		"post-autoload-dump": [
 			"TYPO3\\TestingFramework\\Composer\\ExtensionTestEnvironment::prepare"
-		]
+		],
+		"fix:php:cs": "php-cs-fixer fix --config .php-cs-fixer.php",
+		"ci:php:stan": "phpstan analyse"
 	},
 	"extra": {
 		"typo3/cms": {
@@ -33,6 +40,9 @@
 		}
 	},
 	"require-dev": {
-		"typo3/cms-fluid-styled-content": "^11.5"
+		"typo3/cms-fluid-styled-content": "^11.5",
+		"typo3/cms-form": "^11.5",
+		"typo3/coding-standards": "^0.5.2",
+		"saschaegerer/phpstan-typo3": "^1.1"
 	}
 }

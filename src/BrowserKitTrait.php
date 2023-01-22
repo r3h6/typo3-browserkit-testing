@@ -4,34 +4,13 @@ namespace R3H6\Typo3BrowserkitTesting;
 
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
-use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
-use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalResponse;
 
 trait BrowserKitTrait
 {
     /**
-     * @var Client
+     * @param array<int, string> $sites
      */
-    protected static $client;
-
-    public function executeFrontendRequest(
-        InternalRequest $request,
-        InternalRequestContext $context = null,
-        bool $followRedirects = false
-    ): InternalResponse {
-        return parent::executeFrontendRequest($request, $context, $followRedirects);
-    }
-
-    public function getClient(): Client
-    {
-        if (static::$client === null) {
-            static::$client = new Client($this);
-        }
-        return static::$client;
-    }
-
-    protected function setUpSites($pageId, array $sites = [])
+    protected function setUpSites(int $pageId, array $sites = []): void
     {
         if (empty($sites[$pageId])) {
             $sites[$pageId] = __DIR__ . '/../res/Fixtures/Frontend/site.yaml';
@@ -46,7 +25,7 @@ trait BrowserKitTrait
                     $file = GeneralUtility::getFileAbsFileName($file);
                 }
                 $fileContent = file_get_contents($file);
-                $fileContent = str_replace('\'{rootPageId}\'', $pageId, $fileContent);
+                $fileContent = str_replace('\'{rootPageId}\'', (string)$identifier, $fileContent);
                 GeneralUtility::writeFile($target, $fileContent);
             }
         }

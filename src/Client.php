@@ -2,25 +2,39 @@
 
 namespace R3H6\Typo3BrowserkitTesting;
 
+use GuzzleHttp\Psr7\Utils;
+use Symfony\Component\BrowserKit\AbstractBrowser;
+use Symfony\Component\BrowserKit\CookieJar;
 use Symfony\Component\BrowserKit\History;
 use Symfony\Component\BrowserKit\Request;
 use Symfony\Component\BrowserKit\Response;
-use Symfony\Component\BrowserKit\CookieJar;
-use Symfony\Component\BrowserKit\AbstractBrowser;
+use Symfony\Component\DomCrawler\Crawler;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
-use function GuzzleHttp\Psr7\stream_for;
+use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 
 class Client extends AbstractBrowser
 {
     /**
-     * @var BrowserKitAwareInterface
+     * @var BrowserKitTestCase
      */
     protected $testCase;
 
-    public function __construct(BrowserKitAwareInterface $testCase, History $history = null, CookieJar $cookieJar = null)
+    public function __construct(BrowserKitTestCase $testCase, History $history = null, CookieJar $cookieJar = null)
     {
         $this->testCase = $testCase;
         parent::__construct([], $history, $cookieJar);
+    }
+
+    /**
+     * @param array<string, mixed> $fieldValues
+     */
+    public function clickButton(string $button, array $fieldValues = []): Crawler
+    {
+        $button = $this->crawler->selectButton($button);
+        $buttonNode = $button->getNode(0);
+        $fieldValues[$buttonNode->getAttribute('name')] = $buttonNode->getAttribute('value');
+        $form = $button->form($fieldValues);
+        return $this->submit($form);
     }
 
     /**
@@ -37,10 +51,15 @@ class Client extends AbstractBrowser
             }
             if ($request->getMethod() === 'POST' && $request->getContent() === null) {
                 $typo3Request = $typo3Request->withAddedHeader('Content-Type', 'application/x-www-form-urlencoded');
-                $typo3Request = $typo3Request->withBody(stream_for(http_build_query($request->getParameters())));
+                $typo3Request = $typo3Request->withBody(Utils::streamFor(http_build_query($request->getParameters())));
+                $typo3Request = $typo3Request->withParsedBody($request->getParameters());
             }
 
-            $typo3Response = $this->testCase->executeFrontendRequest($typo3Request, null, true);
+            $typo3Context = (new InternalRequestContext())->withGlobalSettings([
+                '_COOKIE' => $request->getCookies(),
+            ]);
+
+            $typo3Response = $this->testCase->executeFrontendRequest($typo3Request, $typo3Context, true);
 
             $request = null;
             // Handle extbase redirects
@@ -52,7 +71,7 @@ class Client extends AbstractBrowser
                 $redirects[] = $redirectUrl;
                 $request = new Request($redirectUrl, 'GET');
             }
-        } while($request);
+        } while ($request);
 
         return new Response(
             (string)$typo3Response->getBody(),
@@ -60,5 +79,4 @@ class Client extends AbstractBrowser
             $typo3Response->getHeaders()
         );
     }
-
 }
