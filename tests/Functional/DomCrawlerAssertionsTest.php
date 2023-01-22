@@ -1,14 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace R3H6\Typo3BrowserkitTesting\Tests\Functional;
 
-use TYPO3\CMS\Core\Core\Environment;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use Symfony\Component\Mailer\Event\MessageEvent;
-use Psr\EventDispatcher\ListenerProviderInterface;
 use R3H6\Typo3BrowserkitTesting\BrowserKitTestCase;
-use TYPO3\CMS\Core\EventDispatcher\ListenerProvider;
-use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 
 class DomCrawlerAssertionsTest extends BrowserKitTestCase
 {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace R3H6\Typo3BrowserkitTesting;
 
 use TYPO3\CMS\Core\Information\Typo3Version;
@@ -15,9 +17,7 @@ class BrowserKitTestCase extends FunctionalTestCase
     use BrowserKitTrait;
 
     protected const MAIL_SETTINGS = [
-        'transport' => 'null',
-        'transport_spool_type' => 'file',
-        'transport_spool_filepath' => 'typo3temp/mails',
+        'transport' => TestTransport::class,
     ];
 
     /**
@@ -49,6 +49,7 @@ class BrowserKitTestCase extends FunctionalTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        TestTransport::reset();
     }
 
     protected function tearDown(): void

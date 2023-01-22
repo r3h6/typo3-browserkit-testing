@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace R3H6\Typo3BrowserkitTesting;
 
 /*
@@ -13,23 +15,20 @@ namespace R3H6\Typo3BrowserkitTesting;
 
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\Mailer\Event\MessageEvent;
-use Symfony\Component\Mailer\Event\MessageEvents;
-use Symfony\Component\Mailer\EventListener\MessageLoggerListener;
 use Symfony\Component\Mailer\Test\Constraint as MailerConstraint;
 use Symfony\Component\Mime\RawMessage;
 use Symfony\Component\Mime\Test\Constraint as MimeConstraint;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 trait MailerAssertionsTrait
 {
     public static function assertEmailCount(int $count, string $transport = null, string $message = ''): void
     {
-        self::assertThat(self::getMessageMailerEvents(), new MailerConstraint\EmailCount($count, $transport), $message);
+        self::assertThat(self::getMailerMessages(), new MailerConstraint\EmailCount($count, $transport), $message);
     }
 
     public static function assertQueuedEmailCount(int $count, string $transport = null, string $message = ''): void
     {
-        self::assertThat(self::getMessageMailerEvents(), new MailerConstraint\EmailCount($count, $transport, true), $message);
+        self::assertThat(self::getMailerMessages(), new MailerConstraint\EmailCount($count, $transport, true), $message);
     }
 
     public static function assertEmailIsQueued(MessageEvent $event, string $message = ''): void
@@ -93,47 +92,15 @@ trait MailerAssertionsTrait
     }
 
     /**
-     * @return MessageEvent[]
-     */
-    public static function getMailerEvents(string $transport = null): array
-    {
-        return self::getMessageMailerEvents()->getEvents($transport);
-    }
-
-    public static function getMailerEvent(int $index = 0, string $transport = null): ?MessageEvent
-    {
-        return self::getMailerEvents($transport)[$index] ?? null;
-    }
-
-    /**
      * @return RawMessage[]
      */
     public static function getMailerMessages(string $transport = null): array
     {
-        if (isset($GLOBALS['TYPO3_CONF_VARS']['MAIL']['transport_spool_filepath'])) {
-            $messages = [];
-            $path = GeneralUtility::getFileAbsFileName($GLOBALS['TYPO3_CONF_VARS']['MAIL']['transport_spool_filepath']);
-            foreach (GeneralUtility::getFilesInDir($path, '', true) as $file) {
-                /** @var \Symfony\Component\Mailer\SentMessage $message */
-                $message = unserialize(file_get_contents($file));
-                $messages[] = $message->getOriginalMessage();
-            }
-            return $messages;
-        }
-        return self::getMessageMailerEvents()->getMessages($transport);
+        return TestTransport::getSentMessages();
     }
 
     public static function getMailerMessage(int $index = 0, string $transport = null): ?RawMessage
     {
         return self::getMailerMessages($transport)[$index] ?? null;
-    }
-
-    private static function getMessageMailerEvents(): MessageEvents
-    {
-        // $container = self::$container;
-        // if ($container->has(MessageLoggerListener::class)) {
-        //     return $container->get(MessageLoggerListener::class)->getEvents();
-        // }
-        static::fail('A client must have Mailer enabled to make email assertions. Did you forget to require symfony/mailer?');
     }
 }

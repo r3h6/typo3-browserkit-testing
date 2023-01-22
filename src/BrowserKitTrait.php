@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace R3H6\Typo3BrowserkitTesting;
 
 use TYPO3\CMS\Core\Core\Environment;
