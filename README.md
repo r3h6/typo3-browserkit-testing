@@ -9,12 +9,14 @@ class MyTestCase extends BrowserKitTestCase
 {
     public function testExample()
     {
-        $client = $this->getClient();
+        $client = self::getClient($this);
         $crawler = $client->request('GET', '/');
         self::assertSelectorExists('.example');
     }
 }
 ```
+
+See also [tests/Functional/DomCrawlerAssertionsTest.php](tests/Functional/DomCrawlerAssertionsTest.php)
 
 ## Assertions
 
@@ -25,3 +27,7 @@ You can find details on [Symfony's Testing Documentation](https://symfony.com/do
 ❌ Browser Assertions<br>
 ✅ Crawler Assertions<br>
 ✅ Mailer Assertions<br>
+
+## Known problems
+
+- File upload not (yet) implemented

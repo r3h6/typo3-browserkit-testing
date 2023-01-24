@@ -2,18 +2,9 @@
 <dataset>
 	<tt_content>
 		<uid>1</uid>
-		<pid>1</pid>
-		<CType>header</CType>
-		<header>Test content</header>
-		<deleted>0</deleted>
-		<t3ver_oid>0</t3ver_oid>
-		<t3ver_wsid>0</t3ver_wsid>
-	</tt_content>
-	<tt_content>
-		<uid>2</uid>
 		<pid>2</pid>
 		<CType>form_formframework</CType>
-		<header>Test form</header>
+		<header>Form</header>
 		<deleted>0</deleted>
 		<t3ver_oid>0</t3ver_oid>
 		<t3ver_wsid>0</t3ver_wsid>

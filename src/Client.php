@@ -57,9 +57,15 @@ class Client extends AbstractBrowser
                 $typo3Request = $typo3Request->withParsedBody($request->getParameters());
             }
 
+            $_COOKIE = $request->getCookies();
             $typo3Context = (new InternalRequestContext())->withGlobalSettings([
-                '_COOKIE' => $request->getCookies(),
+                '_COOKIE' => $_COOKIE,
             ]);
+
+            $frontendUserId = $request->getServer()[ServerParameters::TYPO3_FEUSER] ?? null;
+            if ($frontendUserId !== null) {
+                $typo3Context = $typo3Context->withFrontendUserId((int)$frontendUserId);
+            }
 
             $typo3Response = $this->testCase->executeFrontendRequest($typo3Request, $typo3Context, true);
 
