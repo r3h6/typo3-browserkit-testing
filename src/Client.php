@@ -17,11 +17,11 @@ use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestCon
 class Client extends AbstractBrowser
 {
     /**
-     * @var BrowserKitTestCase
+     * @var WebTestCase
      */
     protected $testCase;
 
-    public function __construct(BrowserKitTestCase $testCase, History $history = null, CookieJar $cookieJar = null)
+    public function __construct(WebTestCase $testCase, History $history = null, CookieJar $cookieJar = null)
     {
         $this->testCase = $testCase;
         parent::__construct([], $history, $cookieJar);

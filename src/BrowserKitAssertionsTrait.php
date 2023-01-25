@@ -154,12 +154,12 @@ trait BrowserKitAssertionsTrait
 
     public static function assertThatForClient(Constraint $constraint, string $message = ''): void
     {
-        self::assertThat(BrowserKitTestCase::getClient(), $constraint, $message);
+        self::assertThat(WebTestCase::getClient(), $constraint, $message);
     }
 
     private static function getResponse(): Response
     {
-        if (!$response = BrowserKitTestCase::getClient()->getResponse()) {
+        if (!$response = WebTestCase::getClient()->getResponse()) {
             static::fail('A client must have an HTTP Response to make assertions. Did you forget to make an HTTP request?');
         }
 
@@ -168,7 +168,7 @@ trait BrowserKitAssertionsTrait
 
     private static function getRequest(): Request
     {
-        if (!$request = BrowserKitTestCase::getClient()->getRequest()) {
+        if (!$request = WebTestCase::getClient()->getRequest()) {
             static::fail('A client must have an HTTP Request to make assertions. Did you forget to make an HTTP request?');
         }
 

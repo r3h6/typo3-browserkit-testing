@@ -1,5 +1,8 @@
 parameters:
 	level: 6
 	paths:
+		- res
 		- src
 		- tests
+	ignoreErrors:
+		- '#Variable \$_EXTKEY might not be defined.#'

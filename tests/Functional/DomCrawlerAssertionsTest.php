@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace R3H6\Typo3BrowserkitTesting\Tests\Functional;
 
-use R3H6\Typo3BrowserkitTesting\BrowserKitTestCase;
+use R3H6\Typo3BrowserkitTesting\WebTestCase;
 use R3H6\Typo3BrowserkitTesting\Client;
 use R3H6\Typo3BrowserkitTesting\ServerParameters as ServerParameters;
 
-class DomCrawlerAssertionsTest extends BrowserKitTestCase
+class DomCrawlerAssertionsTest extends WebTestCase
 {
     protected $coreExtensionsToLoad = [
         'fluid_styled_content',
@@ -17,7 +17,7 @@ class DomCrawlerAssertionsTest extends BrowserKitTestCase
     ];
 
     protected $configurationToUseInTestInstance = [
-        'MAIL' => self::MAIL_SETTINGS,
+        'MAIL' => WebTestCase::MAIL_SETTINGS,
     ];
 
     protected $pathsToLinkInTestInstance = [
@@ -82,7 +82,7 @@ class DomCrawlerAssertionsTest extends BrowserKitTestCase
 
         $client = self::getClient($this);
         /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
-        $crawler = $client->request('GET', '/page2');
+        $crawler = $client->request('POST', '/page2');
         $crawler = $client->clickButton('Login', [
             'user' => 'testuser',
             'pass' => 'password',
