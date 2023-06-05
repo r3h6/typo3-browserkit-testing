@@ -35,10 +35,10 @@ class Client extends AbstractBrowser
     {
         $button = $this->crawler->selectButton($button);
         $buttonNode = $button->getNode(0);
-        $name = (string) $buttonNode->getAttribute('name');
+        $name = (string)$buttonNode->getAttribute('name');
         if ($name !== '') {
             $fieldValues[$name] = $buttonNode->getAttribute('value');
-        }        
+        }
         $form = $button->form($fieldValues);
         return $this->submit($form);
     }
