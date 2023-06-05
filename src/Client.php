@@ -11,6 +11,7 @@ use Symfony\Component\BrowserKit\History;
 use Symfony\Component\BrowserKit\Request;
 use Symfony\Component\BrowserKit\Response;
 use Symfony\Component\DomCrawler\Crawler;
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 
@@ -69,9 +70,17 @@ class Client extends AbstractBrowser
 
             $typo3Response = $this->testCase->executeFrontendRequest($typo3Request, $typo3Context, true);
 
+            // \TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($typo3Response, '', 3, true);
+
+            $cookieFile = Environment::getVarPath() . '/cookie';
+            if (file_exists($cookieFile)) {
+                $cookie = json_decode(file_get_contents($cookieFile));
+                // $typo3Response = $typo3Response->withAddedHeader
+            }
+
             $request = null;
             // Handle extbase redirects
-            if (preg_match('#<head><meta http-equiv="refresh" content="0;url=(?P<url>[^"]+)"/></head></html>#si', (string)$typo3Response->getBody(), $matches)) {
+            if (preg_match('#<meta http-equiv="refresh" content="0;url=(?P<url>[^"]+)"/>#si', (string)$typo3Response->getBody(), $matches)) {
                 $redirectUrl = rawurldecode(html_entity_decode($matches['url']));
                 if (in_array($redirectUrl, $redirects, true)) {
                     throw new \RuntimeException('Loop detected for ' . $redirectUrl, 1646316092331);

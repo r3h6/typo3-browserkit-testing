@@ -1,0 +1,9 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  R3H6\WebTestCase\EventListener\RedirectResponseHandler:
+    tags:
+      - name: event.listener

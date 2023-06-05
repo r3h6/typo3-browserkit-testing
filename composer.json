@@ -29,7 +29,7 @@
 	"scripts": {
 		"ci:php:lint": "find *.php src/ res/ tests/ -name '*.php' -print0 | xargs -0 -n 1 -P 4 php -l",
 		"ci:php:cs": "php-cs-fixer fix --config .php-cs-fixer.php -v --dry-run --using-cache no --diff",
-		"fix:php:cs": "php-cs-fixer fix --config .php-cs-fixer.php",
+		"fix:php:cs": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix --config .php-cs-fixer.php",
 		"ci:php:stan": "phpstan analyse"
 	},
 	"extra": {
@@ -43,6 +43,7 @@
 		"typo3/cms-form": "^10.4 || ^11.5",
 		"typo3/coding-standards": "^0.5.2",
 		"saschaegerer/phpstan-typo3": "^1.1",
-		"typo3/cms-felogin": "^10.4 || ^11.5"
+		"typo3/cms-felogin": "^10.4 || ^11.5",
+		"typo3/cms-extbase": "^11.5"
 	}
 }

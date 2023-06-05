@@ -6,7 +6,6 @@
 		<title>Root</title>
 		<sorting>128</sorting>
 		<deleted>0</deleted>
-		<perms_everybody>15</perms_everybody>
 		<slug>/</slug>
 	</pages>
 	<pages>
@@ -15,7 +14,6 @@
 		<sorting>128</sorting>
 		<title>Dummy 1-2</title>
 		<deleted>0</deleted>
-		<perms_everybody>15</perms_everybody>
 		<slug>/page2</slug>
 	</pages>
 	<pages>
@@ -24,7 +22,6 @@
 		<sorting>128</sorting>
 		<title>Dummy 1-2-3</title>
 		<deleted>0</deleted>
-		<perms_everybody>15</perms_everybody>
 		<slug>/page2/page3</slug>
 	</pages>
 	<pages>
@@ -33,7 +30,6 @@
 		<sorting>128</sorting>
 		<title>Dummy 1-2-3-4</title>
 		<deleted>0</deleted>
-		<perms_everybody>15</perms_everybody>
 		<slug>/page2/page3/page4</slug>
 	</pages>
 	<pages>
@@ -42,7 +38,6 @@
 		<sorting>256</sorting>
 		<title>Dummy 1-5</title>
 		<deleted>0</deleted>
-		<perms_everybody>15</perms_everybody>
 		<slug>/page5</slug>
 	</pages>
 	<pages>
@@ -51,7 +46,6 @@
 		<sorting>128</sorting>
 		<title>Dummy 1-5-6</title>
 		<deleted>0</deleted>
-		<perms_everybody>15</perms_everybody>
 		<slug>/page5/page6</slug>
 	</pages>
 	<pages>
@@ -60,6 +54,5 @@
 		<sorting>256</sorting>
 		<title>Root 2</title>
 		<deleted>0</deleted>
-		<perms_everybody>15</perms_everybody>
 	</pages>
 </dataset>

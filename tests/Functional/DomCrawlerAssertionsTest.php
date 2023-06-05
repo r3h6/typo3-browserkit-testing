@@ -53,7 +53,6 @@ class DomCrawlerAssertionsTest extends WebTestCase
         $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/form_framework.xml');
 
         $client = self::getClient($this);
-        /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
         $crawler = $client->request('GET', '/page2');
 
         $formNamespace = 'tx_form_formframework[ext-form-simple-contact-form-example-1]';
@@ -66,11 +65,14 @@ class DomCrawlerAssertionsTest extends WebTestCase
         ]);
 
         $crawler = $client->submit($form);
-        $crawler = $client->clickButton('Submit');
+        self::assertSelectorTextSame('.frame-type-form_formframework legend', 'Summary page', "Response:\n" . $client->getResponse());
 
+        $crawler = $client->clickButton('Submit');
+        self::assertSelectorTextContains('body', 'Thank you!', "Response:\n" . $client->getResponse());
 
         $email = self::getMailerMessage();
         self::assertEmailHeaderSame($email, 'subject', 'Your message: Test subject');
+
     }
 
     /**
@@ -81,8 +83,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
         $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/felogin_login.xml');
 
         $client = self::getClient($this);
-        /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
-        $crawler = $client->request('POST', '/page2');
+        $crawler = $client->request('GET', '/page2');
         $crawler = $client->clickButton('Login', [
             'user' => 'testuser',
             'pass' => 'password',
@@ -102,12 +103,50 @@ class DomCrawlerAssertionsTest extends WebTestCase
         $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/accessRestrictedContent.xml');
 
         $client = self::getClient($this);
-        /** @var \Symfony\Component\DomCrawler\Crawler $crawler */
         $crawler = $client->request('GET', '/page2');
-        self::assertSelectorTextNotContains('body', 'Only for your eyes');
+        self::assertSelectorTextNotContains('body', 'Only for your eyes', "Response:\n" . $client->getResponse());
 
         $client->setServerParameter(ServerParameters::TYPO3_FEUSER, '1');
         $crawler = $client->request('GET', '/page2');
-        self::assertSelectorTextContains('body', 'Only for your eyes');
+        self::assertSelectorTextContains('body', 'Only for your eyes', "Response:\n" . $client->getResponse());
+    }
+
+    /**
+     * @test
+     */
+    public function handleLegacyRedirect(): void
+    {
+        error_reporting(E_ALL & ~E_USER_DEPRECATED);
+        $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_redirect.xml');
+
+        $client = self::getClient($this);
+        $crawler = $client->request('GET', '/page2');
+        self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
+    }
+
+    /**
+     * @test
+     */
+    public function handleResponseRedirect(): void
+    {
+        error_reporting(E_ALL & ~E_USER_DEPRECATED);
+        $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_response.xml');
+
+        $client = self::getClient($this);
+        $crawler = $client->request('GET', '/page2');
+        self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
+    }
+
+    /**
+     * @test
+     */
+    public function handlePropagateExceptionRedirect(): void
+    {
+        error_reporting(E_ALL & ~E_USER_DEPRECATED);
+        $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_propagate.xml');
+
+        $client = self::getClient($this);
+        $crawler = $client->request('GET', '/page2');
+        self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
     }
 }
