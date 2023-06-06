@@ -2,9 +2,9 @@
 	"name": "r3h6/typo3-browserkit-testing",
 	"description": "BrowserKit testing for TYPO3",
 	"require": {
-		"symfony/browser-kit": "^5.4",
-		"typo3/testing-framework": "^6.15",
-		"symfony/css-selector": "^5.4"
+		"symfony/browser-kit": "^5.4 || ^6.0",
+		"typo3/testing-framework": "^6.15 || ^7.0",
+		"symfony/css-selector": "^5.4 || ^6.0"
 	},
 	"license": "MIT",
 	"autoload": {
@@ -39,11 +39,10 @@
 		}
 	},
 	"require-dev": {
-		"typo3/cms-fluid-styled-content": "^10.4 || ^11.5",
-		"typo3/cms-form": "^10.4 || ^11.5",
+		"typo3/cms-fluid-styled-content": "^12.4 || ^11.5",
+		"typo3/cms-form": "^12.4 || ^11.5",
 		"typo3/coding-standards": "^0.5.2",
 		"saschaegerer/phpstan-typo3": "^1.1",
-		"typo3/cms-felogin": "^10.4 || ^11.5",
-		"typo3/cms-extbase": "^11.5"
+		"typo3/cms-felogin": "^12.4 || ^11.5"
 	}
 }

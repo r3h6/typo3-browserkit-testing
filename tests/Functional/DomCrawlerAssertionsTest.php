@@ -10,17 +10,17 @@ use R3H6\Typo3BrowserkitTesting\ServerParameters as ServerParameters;
 
 class DomCrawlerAssertionsTest extends WebTestCase
 {
-    protected $coreExtensionsToLoad = [
+    protected array $coreExtensionsToLoad = [
         'fluid_styled_content',
         'felogin',
         'form',
     ];
 
-    protected $configurationToUseInTestInstance = [
+    protected array $configurationToUseInTestInstance = [
         'MAIL' => WebTestCase::MAIL_SETTINGS,
     ];
 
-    protected $pathsToLinkInTestInstance = [
+    protected array $pathsToLinkInTestInstance = [
         '../../../../../../res/Fixtures/Folder/fileadmin/form_definitions' => 'fileadmin/form_definitions'
     ];
 
@@ -89,7 +89,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
             'pass' => 'password',
         ]);
 
-        self::assertSelectorTextSame('.frame-type-felogin_login h3', 'Login successful');
+        self::assertSelectorTextSame('.frame-type-felogin_login h3', 'Login successful', "Response:\n" . $client->getResponse());
 
         $crawler = $client->request('GET', '/page2');
         self::assertInputValueSame('logintype', 'logout', "Response:\n" . $client->getResponse());
