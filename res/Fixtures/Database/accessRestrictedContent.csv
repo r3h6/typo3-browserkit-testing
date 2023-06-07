@@ -1,0 +1,9 @@
+"fe_users",
+,"uid","pid","username","password","usergroup"
+,1,7,"testuser","",1
+"fe_groups",
+,"uid","pid","title"
+,1,7,"CUG"
+"tt_content",
+,"uid","pid","fe_group","CType","header","bodytext"
+,1,2,1,"text","Only for your eyes","..."
