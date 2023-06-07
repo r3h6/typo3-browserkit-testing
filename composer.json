@@ -3,7 +3,7 @@
 	"description": "BrowserKit testing for TYPO3",
 	"require": {
 		"symfony/browser-kit": "^5.4 || ^6.0",
-		"typo3/testing-framework": "^7.0 || ^8.0",
+		"typo3/testing-framework": "^7.0",
 		"symfony/css-selector": "^5.4 || ^6.0"
 	},
 	"license": "MIT",
