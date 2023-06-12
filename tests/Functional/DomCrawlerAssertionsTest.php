@@ -10,24 +10,47 @@ use R3H6\Typo3BrowserkitTesting\ServerParameters as ServerParameters;
 
 class DomCrawlerAssertionsTest extends WebTestCase
 {
-    protected $coreExtensionsToLoad = [
+    protected array $coreExtensionsToLoad = [
         'fluid_styled_content',
         'felogin',
         'form',
     ];
-
-    protected $configurationToUseInTestInstance = [
+    protected array $configurationToUseInTestInstance = [
         'MAIL' => WebTestCase::MAIL_SETTINGS,
+        'LOG' => [
+            'R3H6' => [
+                'WebTestCase' => [
+                    'writerConfiguration' => [
+                        \TYPO3\CMS\Core\Log\LogLevel::DEBUG => [
+                            \TYPO3\CMS\Core\Log\Writer\FileWriter::class => [],
+                        ],
+                    ],
+                ],
+            ],
+            'TYPO3' => [
+                'CMS' => [
+                    'Frontend' => [
+                        'Authentication' => [
+                            'writerConfiguration' => [
+                                \TYPO3\CMS\Core\Log\LogLevel::DEBUG => [
+                                    \TYPO3\CMS\Core\Log\Writer\FileWriter::class => [],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
     ];
 
-    protected $pathsToLinkInTestInstance = [
+    protected array $pathsToLinkInTestInstance = [
         '../../../../../../res/Fixtures/Folder/fileadmin/form_definitions' => 'fileadmin/form_definitions'
     ];
 
     public function setUp(): void
     {
         parent::setUp();
-        $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/pages.xml');
+        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/pages.csv');
         $this->setUpSites(1);
         $this->setUpFrontendRootPage(1, [
             'setup' => [
@@ -50,7 +73,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
      */
     public function submitForm(): void
     {
-        $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/form_framework.xml');
+        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/form_framework.csv');
 
         $client = self::getClient($this);
         $crawler = $client->request('GET', '/page2');
@@ -80,7 +103,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
      */
     public function login(): void
     {
-        $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/felogin_login.xml');
+        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/felogin_login.csv');
 
         $client = self::getClient($this);
         $crawler = $client->request('GET', '/page2');
@@ -89,7 +112,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
             'pass' => 'password',
         ]);
 
-        self::assertSelectorTextSame('.frame-type-felogin_login h3', 'Login successful');
+        self::assertSelectorTextSame('.frame-type-felogin_login h3', 'Login successful', "Response:\n" . $client->getResponse());
 
         $crawler = $client->request('GET', '/page2');
         self::assertInputValueSame('logintype', 'logout', "Response:\n" . $client->getResponse());
@@ -100,7 +123,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
      */
     public function accessRestrictedContent(): void
     {
-        $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/accessRestrictedContent.xml');
+        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/accessRestrictedContent.csv');
 
         $client = self::getClient($this);
         $crawler = $client->request('GET', '/page2');
@@ -117,7 +140,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     public function handleLegacyRedirect(): void
     {
         error_reporting(E_ALL & ~E_USER_DEPRECATED);
-        $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_redirect.xml');
+        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_redirect.csv');
 
         $client = self::getClient($this);
         $crawler = $client->request('GET', '/page2');
@@ -130,7 +153,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     public function handleResponseRedirect(): void
     {
         error_reporting(E_ALL & ~E_USER_DEPRECATED);
-        $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_response.xml');
+        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_response.csv');
 
         $client = self::getClient($this);
         $crawler = $client->request('GET', '/page2');
@@ -143,7 +166,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     public function handlePropagateExceptionRedirect(): void
     {
         error_reporting(E_ALL & ~E_USER_DEPRECATED);
-        $this->importDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_propagate.xml');
+        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_propagate.csv');
 
         $client = self::getClient($this);
         $crawler = $client->request('GET', '/page2');

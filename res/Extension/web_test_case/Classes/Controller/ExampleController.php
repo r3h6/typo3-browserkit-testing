@@ -18,7 +18,7 @@ class ExampleController extends ActionController implements LoggerAwareInterface
     public function redirectAction (): ResponseInterface
     {
         $this->logger->info('Redirect to "show"');
-        $this->redirect('show');
+        return $this->redirect('show');
     }
 
     public function responseAction (): ResponseInterface

@@ -18,16 +18,17 @@ class WebTestCaseMiddleware implements MiddlewareInterface, LoggerAwareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+
         $request = $request->withCookieParams($_COOKIE);
+        $this->logger->info('Request', [
+            'uri' => (string) $request->getUri(),
+            'method' => $request->getMethod(),
+            'body' => (string) $request->getBody(),
+            '_COOKIE' => $_COOKIE,
+            '_GET' => $_GET,
+            '_POST' => $_POST,
+        ]);
         $response = $handler->handle($request);
-
-        // $cookie = [
-        //     'name' => $GLOBALS['TSFE']->fe_user->getCookieName(),
-        //     'value' => $GLOBALS['TSFE']->fe_user->id,
-        // ];
-
-        // file_put_contents(Environment::getVarPath() . '/cookie', json_encode($cookie));
-
         return $response;
     }
 }
