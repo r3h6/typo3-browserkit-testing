@@ -23,12 +23,24 @@ class WebTestCaseMiddleware implements MiddlewareInterface, LoggerAwareInterface
         $this->logger->info('Request', [
             'uri' => (string) $request->getUri(),
             'method' => $request->getMethod(),
+            'headers' => $request->getHeaders(),
             'body' => (string) $request->getBody(),
             '_COOKIE' => $_COOKIE,
             '_GET' => $_GET,
             '_POST' => $_POST,
         ]);
         $response = $handler->handle($request);
+
+        if (!$response->hasHeader('Set-Cookie')) {
+            $response = $GLOBALS['TSFE']->fe_user->appendCookieToResponse($response);
+        }
+
+        $this->logger->info('Response', [
+            'statusCode' => $response->getStatusCode(),
+            'headers' => $response->getHeaders(),
+            '_COOKIE' => $_COOKIE,
+        ]);
+
         return $response;
     }
 }
