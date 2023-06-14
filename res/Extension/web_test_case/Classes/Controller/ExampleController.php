@@ -18,6 +18,7 @@ class ExampleController extends ActionController implements LoggerAwareInterface
     public function redirectAction (): ResponseInterface
     {
         $this->logger->info('Redirect to "show"');
+        $this->addFlashMessage('Redirected from ' . __METHOD__);
         return $this->redirect('show');
     }
 
@@ -25,6 +26,7 @@ class ExampleController extends ActionController implements LoggerAwareInterface
     {
         $uri = $this->uriBuilder->uriFor('show');
         $this->logger->info('Redirect to ' . $uri);
+        $this->addFlashMessage('Redirected from ' . __METHOD__);
         return new RedirectResponse($uri);
     }
 
@@ -35,11 +37,12 @@ class ExampleController extends ActionController implements LoggerAwareInterface
     {
         $uri = $this->uriBuilder->uriFor('show');
         $this->logger->info('Redirect to ' . $uri);
+        $this->addFlashMessage('Redirected from ' . __METHOD__);
         throw new PropagateResponseException(new RedirectResponse($uri), 1477070964);
     }
 
     public function showAction(): ResponseInterface
     {
-        return $this->htmlResponse('The show must go on');
+        return $this->htmlResponse();
     }
 }

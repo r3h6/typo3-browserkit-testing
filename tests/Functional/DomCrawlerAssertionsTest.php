@@ -145,6 +145,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
         $client = self::getClient($this);
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
+        self::assertSelectorTextContains('body', 'Redirected from', "Response:\n" . $client->getResponse());
     }
 
     /**
@@ -158,6 +159,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
         $client = self::getClient($this);
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
+        self::assertSelectorTextContains('body', 'Redirected from', "Response:\n" . $client->getResponse());
     }
 
     /**
@@ -171,5 +173,6 @@ class DomCrawlerAssertionsTest extends WebTestCase
         $client = self::getClient($this);
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
+        self::assertSelectorTextContains('body', 'Redirected from', "Response:\n" . $client->getResponse());
     }
 }

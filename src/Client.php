@@ -48,43 +48,32 @@ class Client extends AbstractBrowser
      */
     protected function doRequest($request)
     {
-        $redirects = [];
-        do {
-            $typo3Request = new InternalRequest($request->getUri());
-            if ($request->getMethod() !== 'GET') {
-                $typo3Request = $typo3Request->withMethod($request->getMethod());
-            }
-            if ($request->getMethod() === 'POST' && $request->getContent() === null) {
-                $typo3Request = $typo3Request->withAddedHeader('Content-Type', 'application/x-www-form-urlencoded');
-                $typo3Request = $typo3Request->withBody(Utils::streamFor(http_build_query($request->getParameters())));
-                $typo3Request = $typo3Request->withParsedBody($request->getParameters());
-                $GLOBALS['_POST'] = $request->getParameters(); // Issue with TYPO3 v11 and Test-Framework v7
-            }
+        // Convert TYPO3 request to Symfony request object
+        $typo3Request = new InternalRequest($request->getUri());
+        if ($request->getMethod() !== 'GET') {
+            $typo3Request = $typo3Request->withMethod($request->getMethod());
+        }
+        if ($request->getMethod() === 'POST' && $request->getContent() === null) {
+            $typo3Request = $typo3Request->withAddedHeader('Content-Type', 'application/x-www-form-urlencoded');
+            $typo3Request = $typo3Request->withBody(Utils::streamFor(http_build_query($request->getParameters())));
+            $typo3Request = $typo3Request->withParsedBody($request->getParameters());
+            $GLOBALS['_POST'] = $request->getParameters(); // Issue with TYPO3 v11 and Test-Framework v7
+        }
 
-            $_COOKIE = $request->getCookies();
-            $typo3Context = (new InternalRequestContext())->withGlobalSettings([
-                '_COOKIE' => $_COOKIE,
-            ]);
+        $_COOKIE = $request->getCookies();
+        $typo3Context = (new InternalRequestContext())->withGlobalSettings([
+            '_COOKIE' => $_COOKIE,
+        ]);
 
-            $frontendUserId = $request->getServer()[ServerParameters::TYPO3_FEUSER] ?? null;
-            if ($frontendUserId !== null) {
-                $typo3Context = $typo3Context->withFrontendUserId((int)$frontendUserId);
-            }
+        $frontendUserId = $request->getServer()[ServerParameters::TYPO3_FEUSER] ?? null;
+        if ($frontendUserId !== null) {
+            $typo3Context = $typo3Context->withFrontendUserId((int)$frontendUserId);
+        }
 
-            $typo3Response = $this->testCase->executeFrontendRequest($typo3Request, $typo3Context, true);
+        // Execute subrequest, redirects are handled by Symfony
+        $typo3Response = $this->testCase->executeFrontendRequest($typo3Request, $typo3Context, false);
 
-            $request = null;
-            // Handle extbase redirects
-            if (preg_match('#<meta http-equiv="refresh" content="0;url=(?P<url>[^"]+)"/>#si', (string)$typo3Response->getBody(), $matches)) {
-                $redirectUrl = rawurldecode(html_entity_decode($matches['url']));
-                if (in_array($redirectUrl, $redirects, true)) {
-                    throw new \RuntimeException('Loop detected for ' . $redirectUrl, 1646316092331);
-                }
-                $redirects[] = $redirectUrl;
-                $request = new Request($redirectUrl, 'GET');
-            }
-        } while ($request);
-
+        // Convert TYPO3 response to Symfony response object
         return new Response(
             (string)$typo3Response->getBody(),
             $typo3Response->getStatusCode(),
