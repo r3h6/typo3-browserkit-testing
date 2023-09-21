@@ -24,3 +24,10 @@ defined('TYPO3') or die();
     [\R3H6\WebTestCase\Controller\ExampleController::class => 'propagateResponse,show'],
     [\R3H6\WebTestCase\Controller\ExampleController::class => 'propagateResponse']
 );
+
+\TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
+    'WebTestCase',
+    'Api',
+    [\R3H6\WebTestCase\Controller\ExampleController::class => 'api'],
+    [\R3H6\WebTestCase\Controller\ExampleController::class => 'api']
+);

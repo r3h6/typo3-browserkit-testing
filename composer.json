@@ -43,6 +43,10 @@
 		"typo3/cms-form": "^12.4 || ^11.5",
 		"typo3/coding-standards": "^0.5.2",
 		"saschaegerer/phpstan-typo3": "^1.1",
-		"typo3/cms-felogin": "^12.4 || ^11.5"
+		"typo3/cms-felogin": "^12.4 || ^11.5",
+		"blastcloud/guzzler": "^2.0"
+	},
+	"suggest": {
+		"blastcloud/guzzler": "Supercharge your app with a testing library specifically for Guzzle"
 	}
 }
