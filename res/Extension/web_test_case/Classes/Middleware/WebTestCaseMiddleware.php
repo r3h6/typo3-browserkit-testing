@@ -9,6 +9,7 @@ use Psr\Log\LoggerAwareInterface;
 use TYPO3\CMS\Core\Core\Environment;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
@@ -29,6 +30,9 @@ class WebTestCaseMiddleware implements MiddlewareInterface, LoggerAwareInterface
             '_GET' => $_GET,
             '_POST' => $_POST,
         ]);
+
+        ArrayUtility::mergeRecursiveWithOverrule($GLOBALS['TYPO3_CONF_VARS'], $GLOBALS['__TYPO3_CONF_VARS'] ?? []);
+
         $response = $handler->handle($request);
 
         if (!$response->hasHeader('Set-Cookie')) {

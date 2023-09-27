@@ -41,10 +41,10 @@ class WebTestCase extends FunctionalTestCase
 
     public static function getClient(WebTestCase $testCase = null): Client
     {
-        if (static::$client === null) {
-            static::$client = new Client($testCase);
+        if (self::$client === null) {
+            self::$client = new Client($testCase);
         }
-        return static::$client;
+        return self::$client;
     }
 
     protected function setUp(): void
@@ -57,7 +57,7 @@ class WebTestCase extends FunctionalTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        static::$client = null;
+        self::$client = null;
     }
 
     private function linkTestExtensionsToInstance(): void

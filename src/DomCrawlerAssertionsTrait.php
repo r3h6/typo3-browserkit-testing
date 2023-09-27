@@ -122,9 +122,9 @@ trait DomCrawlerAssertionsTrait
 
     private static function getCrawler(): Crawler
     {
-        $crawler = WebTestCase::getClient()->getCrawler();
+        $crawler = self::getClient()->getCrawler();
         if (!$crawler instanceof Crawler) {
-            static::fail('A client must have a crawler to make assertions. Did you forget to make an HTTP request?');
+            self::fail('A client must have a crawler to make assertions. Did you forget to make an HTTP request?');
         }
 
         return $crawler;
