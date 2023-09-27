@@ -29,29 +29,11 @@ class ApiExampleTest extends WebTestCase
                     ],
                 ],
             ],
-            'TYPO3' => [
-                'CMS' => [
-                    'Frontend' => [
-                        'Authentication' => [
-                            'writerConfiguration' => [
-                                \TYPO3\CMS\Core\Log\LogLevel::DEBUG => [
-                                    \TYPO3\CMS\Core\Log\Writer\FileWriter::class => [],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
         ],
     ];
 
     public function setUp(): void
     {
-        $this->configurationToUseInTestInstance['HTTP']['handler']['guzzler'] = function (callable $handler)
-        {
-            return $this->guzzler->getHandlerStack();
-        };
-
         parent::setUp();
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/pages.csv');
         $this->setUpSites(1);
@@ -69,6 +51,10 @@ class ApiExampleTest extends WebTestCase
                 page.10 =< styles.content.get
             '
         ]);
+
+        $GLOBALS['__TYPO3_CONF_VARS']['HTTP']['handler']['mock'] = function(){
+            return $this->guzzler->getHandlerStack();
+        };
     }
 
     /**
@@ -78,21 +64,18 @@ class ApiExampleTest extends WebTestCase
     public function mockApi(): void
     {
         $this->guzzler->expects($this->once())
-            ->get('/posts')
-            ->willRespond(new Response());
+            ->post('/posts')
+            ->withJson([
+                'title' => 'TYPO3',
+                'body' => 'Inspire people to share',
+                'userId' => 1,
+            ])
+            ->willRespond(new Response(200, [], 'GUZZLER'));
 
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_api.csv');
 
         $client = self::getClient($this);
         $crawler = $client->request('GET', '/page2');
-
-
-        $content = (string) $client->getResponse();
-        self::assertSame('body', $content);
-
-
-
+        self::assertSelectorTextContains('body', 'GUZZLER');
     }
-
-
 }

@@ -64,6 +64,6 @@ class ExampleController extends ActionController implements LoggerAwareInterface
             ]
         ];
         $response = $this->requestFactory->request($url, 'POST', $options);
-        return $this->jsonResponse((string) $response->getBody());
+        return $this->htmlResponse((string) $response->getBody());
     }
 }
