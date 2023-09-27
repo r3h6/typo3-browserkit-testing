@@ -17,9 +17,12 @@ class ExampleController extends ActionController implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
+    private RequestFactory $requestFactory;
+
     public function __construct(
-        private readonly RequestFactory $requestFactory,
+        RequestFactory $requestFactory
     ) {
+        $this->requestFactory = $requestFactory;
     }
 
     public function redirectAction (): ResponseInterface
