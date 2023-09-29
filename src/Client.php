@@ -60,6 +60,8 @@ class Client extends AbstractBrowser
             $typo3Request = $typo3Request->withBody(Utils::streamFor(http_build_query($request->getParameters())));
             $typo3Request = $typo3Request->withParsedBody($request->getParameters());
             $GLOBALS['_POST'] = $request->getParameters(); // Issue with TYPO3 v11 and Test-Framework v7
+        } else if ($request->getContent()) {
+            $typo3Request = $typo3Request->withBody(Utils::streamFor($request->getContent()));
         }
 
         $_COOKIE = $request->getCookies();
