@@ -73,6 +73,9 @@ class Client extends AbstractBrowser
         // Execute subrequest, redirects are handled by Symfony
         $typo3Response = $this->testCase->executeFrontendRequest($typo3Request, $typo3Context, false);
 
+        // Make sure everything is persisted for subrequests
+        GeneralUtility::makeInstance(PersistenceManager::class)->persistAll();
+
         // Convert TYPO3 response to Symfony response object
         return new Response(
             (string)$typo3Response->getBody(),
