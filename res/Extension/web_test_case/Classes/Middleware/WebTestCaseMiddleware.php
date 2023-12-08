@@ -35,7 +35,7 @@ class WebTestCaseMiddleware implements MiddlewareInterface, LoggerAwareInterface
 
         $response = $handler->handle($request);
 
-        if (!$response->hasHeader('Set-Cookie')) {
+        if (!$response->hasHeader('Set-Cookie') && isset($GLOBALS['TSFE'])) {
             $response = $GLOBALS['TSFE']->fe_user->appendCookieToResponse($response);
         }
 
