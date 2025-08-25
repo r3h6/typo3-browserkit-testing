@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace R3H6\Typo3BrowserkitTesting;
 
-use TYPO3\CMS\Core\Information\Typo3Version;
+use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
-use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
-use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
-use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalResponse;
+use Symfony\Component\Filesystem\Filesystem;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
+use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
+use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalResponse;
+use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 
 class WebTestCase extends FunctionalTestCase
 {
@@ -17,48 +18,119 @@ class WebTestCase extends FunctionalTestCase
     use MailerAssertionsTrait;
     use BrowserKitTrait;
 
+    protected bool $autoConfigureExtensions = true;
+    protected array $fixturesToLoad = [];
+
     protected const MAIL_SETTINGS = [
         'transport' => TestTransport::class,
     ];
 
-    /**
-     * @var Client|null
-     */
-    protected static $client;
+    protected static ?Typo3Client $typo3Client;
 
-    public function executeFrontendRequest(
+    public function executeTypo3FrontendRequest(
         InternalRequest $request,
-        InternalRequestContext $context = null,
-        bool $followRedirects = false
-    ): InternalResponse {
-        $doSubrequest = (new Typo3Version())->getMajorVersion() > 10;
-        if ($doSubrequest) {
-            return parent::executeFrontendSubRequest($request, $context, $followRedirects);
-        }
-
-        return parent::executeFrontendRequest($request, $context, $followRedirects);
+        InternalRequestContext $context,
+        bool $followRedirects
+    ): ResponseInterface {
+        return parent::executeFrontendSubRequest($request, $context, $followRedirects);
     }
 
-    public static function getClient(WebTestCase $testCase = null): Client
+    public static function getTypo3Client(): Typo3Client
     {
-        if (self::$client === null) {
-            self::$client = new Client($testCase);
-        }
-        return self::$client;
+        return self::$typo3Client;
     }
 
     protected function setUp(): void
     {
+        if ($this->autoConfigureExtensions) {
+            $this->initializeTestExtensionsToLoad();
+            $this->initializeCoreExtensionsToLoad();
+            $this->initializeConfigurationToUseInTestInstance();
+            $this->linkSitesToTestInstance();
+        }
         parent::setUp();
         TestTransport::reset();
+        self::$typo3Client = new Typo3Client($this);
         $this->linkTestExtensionsToInstance();
+
+        foreach ($this->fixturesToLoad as $fixture) {
+            $this->importCSVDataSet($fixture);
+        }
+
+        if (isset($this->guzzler)) {
+            $GLOBALS['__TYPO3_CONF_VARS']['HTTP']['handler']['mock'] = function () {
+                return $this->guzzler->getHandlerStack();
+            };
+        }
     }
 
     protected function tearDown(): void
     {
         parent::tearDown();
-        self::$client = null;
+        self::$typo3Client = null;
     }
+
+    private function initializeTestExtensionsToLoad(): void
+    {
+        $this->testExtensionsToLoad = array_merge(
+            $this->getExtensionPaths('typo3-cms-extension', 'typo3conf/ext/'),
+            $this->testExtensionsToLoad
+        );
+    }
+
+    private function initializeCoreExtensionsToLoad(): void
+    {
+        $this->coreExtensionsToLoad = array_merge(
+            $this->getExtensionPaths('typo3-cms-framework', ''),
+            $this->coreExtensionsToLoad
+        );
+    }
+
+    private function getExtensionPaths(string $packageType, string $pathPrefix): array
+    {
+        $extensionsToLoad = [];
+        $packages = \Composer\InstalledVersions::getInstalledPackagesByType($packageType);
+        foreach ($packages as $package) {
+            $extensionPath = \Composer\InstalledVersions::getInstallPath($package);
+            $composerJsonPath = $extensionPath . '/composer.json';
+            $json = json_decode(file_get_contents($composerJsonPath), true);
+            $extensionKey = $json['extra']['typo3/cms']['extension-key'] ?? null;
+            if ($extensionKey === null) {
+                continue;
+            }
+            $extensionsToLoad[] = $pathPrefix . $extensionKey;
+        }
+        return $extensionsToLoad;
+    }
+
+    private function initializeConfigurationToUseInTestInstance(): void
+    {
+        $this->configurationToUseInTestInstance = array_merge_recursive([
+            'MAIL' => self::MAIL_SETTINGS,
+        ], $this->configurationToUseInTestInstance);
+    }
+
+    private function linkSitesToTestInstance(): void
+    {
+        $fs = new Filesystem();
+
+        $projectRoot = realpath(\Composer\InstalledVersions::getRootPackage()['install_path']);
+        $sitesPath = $projectRoot . '/config/sites';
+        $instancePath = self::getInstancePath();
+
+        $relativeSitesPath = $fs->makePathRelative($sitesPath, $instancePath);
+
+        $this->pathsToLinkInTestInstance = array_merge([
+            $relativeSitesPath => 'typo3conf/sites',
+        ], $this->pathsToLinkInTestInstance);
+    }
+
+    // private function setUpSitePackage(int $pageUid, string $sitePackage): void
+    // {
+    //     $this->setUpFrontendRootPage($pageUid, [], [
+    //         'include_static_file' => 'EXT:' . $sitePackage . '/Configuration/TypoScript',
+    //     ]);
+    // }
 
     private function linkTestExtensionsToInstance(): void
     {

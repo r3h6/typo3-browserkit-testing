@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace R3H6\Typo3BrowserkitTesting\Tests\Functional;
 
 use R3H6\Typo3BrowserkitTesting\WebTestCase;
-use R3H6\Typo3BrowserkitTesting\Client;
+use R3H6\Typo3BrowserkitTesting\Typo3Client;
 use R3H6\Typo3BrowserkitTesting\ServerParameters as ServerParameters;
 
 class DomCrawlerAssertionsTest extends WebTestCase
@@ -75,7 +75,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     {
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/form_framework.csv');
 
-        $client = self::getClient($this);
+        $client = self::$typo3Client;
         $crawler = $client->request('GET', '/page2');
 
         $formNamespace = 'tx_form_formframework[ext-form-simple-contact-form-example-1]';
@@ -90,7 +90,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
         $crawler = $client->submit($form);
         self::assertSelectorTextSame('.frame-type-form_formframework legend', 'Summary page', "Response:\n" . $client->getResponse());
 
-        $crawler = $client->clickButton('Submit');
+        $crawler = $client->clickSubmitButton('Submit');
         self::assertSelectorTextContains('body', 'Thank you!', "Response:\n" . $client->getResponse());
 
         $email = self::getMailerMessage();
@@ -105,9 +105,9 @@ class DomCrawlerAssertionsTest extends WebTestCase
     {
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/felogin_login.csv');
 
-        $client = self::getClient($this);
+        $client = self::$typo3Client;
         $crawler = $client->request('GET', '/page2');
-        $crawler = $client->clickButton('Login', [
+        $crawler = $client->clickSubmitButton('Login', [
             'user' => 'testuser',
             'pass' => 'password',
         ]);
@@ -125,7 +125,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     {
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/accessRestrictedContent.csv');
 
-        $client = self::getClient($this);
+        $client = self::$typo3Client;
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextNotContains('body', 'Only for your eyes', "Response:\n" . $client->getResponse());
 
@@ -142,7 +142,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
         error_reporting(E_ALL & ~E_USER_DEPRECATED);
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_redirect.csv');
 
-        $client = self::getClient($this);
+        $client = self::$typo3Client;
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
         self::assertSelectorTextContains('body', 'Redirected from', "Response:\n" . $client->getResponse());
@@ -156,7 +156,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
         error_reporting(E_ALL & ~E_USER_DEPRECATED);
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_response.csv');
 
-        $client = self::getClient($this);
+        $client = self::$typo3Client;
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
         self::assertSelectorTextContains('body', 'Redirected from', "Response:\n" . $client->getResponse());
@@ -170,7 +170,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
         error_reporting(E_ALL & ~E_USER_DEPRECATED);
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_propagate.csv');
 
-        $client = self::getClient($this);
+        $client = self::$typo3Client;
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
         self::assertSelectorTextContains('body', 'Redirected from', "Response:\n" . $client->getResponse());

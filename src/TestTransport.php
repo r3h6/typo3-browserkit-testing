@@ -35,7 +35,7 @@ class TestTransport extends AbstractTransport
     public static function getSentMessages(): array
     {
         $inbox = self::getInbox();
-        return is_file($inbox) ? unserialize(file_get_contents($inbox)): [];
+        return is_file($inbox) ? unserialize(file_get_contents($inbox)) : [];
     }
 
     public function __toString(): string

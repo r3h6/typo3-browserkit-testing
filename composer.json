@@ -2,9 +2,10 @@
 	"name": "r3h6/typo3-browserkit-testing",
 	"description": "BrowserKit testing for TYPO3",
 	"require": {
-		"symfony/browser-kit": "^5.4 || ^6.0",
-		"typo3/testing-framework": "^7.0",
-		"symfony/css-selector": "^5.4 || ^6.0"
+		"php": ">=8.2",
+		"symfony/browser-kit":"*",
+		"symfony/css-selector": "*",
+		"typo3/testing-framework": "^8.2"
 	},
 	"license": "MIT",
 	"autoload": {
@@ -21,6 +22,8 @@
 	"config": {
 		"vendor-dir": ".Build/vendor",
 		"bin-dir": ".Build/bin",
+		"lock": false,
+		"sort-packages": true,
 		"allow-plugins": {
 			"typo3/cms-composer-installers": true,
 			"typo3/class-alias-loader": true
@@ -34,17 +37,31 @@
 	},
 	"extra": {
 		"typo3/cms": {
-			"cms-package-dir": "{$vendor-dir}/typo3/cms",
 			"web-dir": ".Build/public"
 		}
 	},
+	"repositories": [
+		{
+			"type": "path",
+			"url": "res/Extension/*"
+		},
+		{
+			"type": "composer",
+			"url": "https://composer.typo3.org/"
+		}
+	],
 	"require-dev": {
-		"typo3/cms-fluid-styled-content": "^12.4 || ^11.5",
-		"typo3/cms-form": "^12.4 || ^11.5",
-		"typo3/coding-standards": "^0.5.2",
-		"saschaegerer/phpstan-typo3": "^1.1",
-		"typo3/cms-felogin": "^12.4 || ^11.5",
-		"blastcloud/guzzler": "^2.0"
+		"blastcloud/guzzler": "^2.0",
+		"r3h6/typo3-example-extension": "@dev",
+		"saschaegerer/phpstan-typo3": "^1.10 || ^2.0",
+		"typo3/cms-backend": "^12.4 || ^13.4",
+		"typo3/cms-core": "^12.4 || ^13.4",
+		"typo3/cms-extensionmanager": "^12.4 || ^13.4",
+		"typo3/cms-felogin": "^12.4 || ^13.4",
+		"typo3/cms-fluid-styled-content": "^12.4 || ^13.4",
+		"typo3/cms-form": "^12.4 || ^13.4",
+		"typo3/cms-install": "^12.4 || ^13.4",
+		"typo3/coding-standards": "^0.7 || ^0.8"
 	},
 	"suggest": {
 		"blastcloud/guzzler": "Supercharge your app with a testing library specifically for Guzzle"

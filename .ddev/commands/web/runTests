@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rm -rf .Build/public/typo3temp/var/tests/
+
 export typo3DatabaseName=db
 export typo3DatabaseHost=db
 export typo3DatabaseUsername=root
@@ -8,4 +10,4 @@ export typo3DatabasePort=3306
 export typo3DatabaseDriver=mysqli
 
 #export typo3DatabaseDriver=pdo_sqlite
-.Build/bin/phpunit -c .Build/vendor/typo3/testing-framework/Resources/Core/Build/FunctionalTests.xml tests/Functional "$@"
+.Build/bin/phpunit -c .Build/vendor/typo3/testing-framework/Resources/Core/Build/FunctionalTests.xml "$@"

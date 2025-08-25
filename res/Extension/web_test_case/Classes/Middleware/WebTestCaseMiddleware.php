@@ -12,6 +12,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 class WebTestCaseMiddleware implements MiddlewareInterface, LoggerAwareInterface
 {
@@ -35,7 +36,7 @@ class WebTestCaseMiddleware implements MiddlewareInterface, LoggerAwareInterface
 
         $response = $handler->handle($request);
 
-        if (!$response->hasHeader('Set-Cookie')) {
+        if (!$response->hasHeader('Set-Cookie') && isset($GLOBALS['TSFE']->fe_user)) {
             $response = $GLOBALS['TSFE']->fe_user->appendCookieToResponse($response);
         }
 

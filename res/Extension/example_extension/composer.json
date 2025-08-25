@@ -1,0 +1,23 @@
+{
+	"name": "r3h6/typo3-example-extension",
+	"description": "Example extension for testing",
+	"license": [
+		"GPL-2.0-or-later"
+	],
+	"type": "typo3-cms-extension",
+	"authors": [],
+	"require": {
+		"typo3/cms-extbase": "^12.4 || ^13.4"
+	},
+	"license": "MIT",
+	"autoload": {
+		"psr-4": {
+			"R3H6\\ExampleExtension\\": "Classes/"
+		}
+	},
+	"extra": {
+		"typo3/cms": {
+			"extension-key": "example_extension"
+		}
+	}
+}

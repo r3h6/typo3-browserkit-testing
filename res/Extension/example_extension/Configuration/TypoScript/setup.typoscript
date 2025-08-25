@@ -1,0 +1,16 @@
+@import 'EXT:fluid_styled_content/Configuration/TypoScript/setup.typoscript'
+@import 'EXT:form/Configuration/TypoScript/setup.typoscript'
+
+page >
+page = PAGE
+page.10 = TEXT
+page.10.data = page:title
+page.10.wrap = <h1>|</h1>
+page.20 = CONTENT
+page.20 {
+    table = tt_content
+    select {
+        orderBy = sorting
+        where = {#colPos}=0
+    }
+}

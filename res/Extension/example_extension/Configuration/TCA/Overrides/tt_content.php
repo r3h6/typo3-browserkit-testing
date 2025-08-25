@@ -4,18 +4,23 @@ defined('TYPO3') or die();
 
 (static function (): void {
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerPlugin(
-        'WebTestCase',
+        'ExampleExtension',
         'Redirect',
         'Redirect plugin'
     );
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerPlugin(
-        'WebTestCase',
+        'ExampleExtension',
         'Response',
         'Response plugin'
     );
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerPlugin(
-        'WebTestCase',
+        'ExampleExtension',
         'Propagate',
         'Propagate plugin'
+    );
+    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerPlugin(
+        'ExampleExtension',
+        'Api',
+        'Api plugin'
     );
 })();

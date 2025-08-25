@@ -6,3 +6,4 @@ parameters:
 		- tests
 	ignoreErrors:
 		- '#Variable \$_EXTKEY might not be defined.#'
+		- identifier: missingType.iterableValue

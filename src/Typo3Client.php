@@ -14,29 +14,36 @@ use Symfony\Component\DomCrawler\Crawler;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 
-class Client extends AbstractBrowser
+/**
+ * @template-extends AbstractBrowser<Request, Response>
+ */
+class Typo3Client extends AbstractBrowser
 {
-    /**
-     * @var WebTestCase
-     */
-    protected $testCase;
+    protected WebTestCase $testCase;
+    protected InternalRequestContext $defaultContext;
 
     public function __construct(WebTestCase $testCase, History $history = null, CookieJar $cookieJar = null)
     {
-        $this->testCase = $testCase;
         parent::__construct([], $history, $cookieJar);
+        $this->testCase = $testCase;
+        $this->defaultContext = new InternalRequestContext();
+    }
+
+    public function setDefaultContext(InternalRequestContext $context): void
+    {
+        $this->defaultContext = $context;
     }
 
     /**
      * @param array<string, mixed> $fieldValues
      */
-    public function clickButton(string $button, array $fieldValues = []): Crawler
+    public function clickSubmitButton(string $button, array $fieldValues = []): Crawler
     {
         $button = $this->crawler->selectButton($button);
         $buttonNode = $button->getNode(0);
-        $name = (string)$buttonNode->getAttribute('name');
+        $name = (string)($buttonNode->attributes['name'] ?? '');
         if ($name !== '') {
-            $fieldValues[$name] = $buttonNode->getAttribute('value');
+            $fieldValues[$name] = $buttonNode->attributes['value'] ?? '';
         }
         $form = $button->form($fieldValues);
         return $this->submit($form);
@@ -60,10 +67,8 @@ class Client extends AbstractBrowser
             $GLOBALS['_POST'] = $request->getParameters(); // Issue with TYPO3 v11 and Test-Framework v7
         }
 
-        $_COOKIE = $request->getCookies();
-        $typo3Context = (new InternalRequestContext())->withGlobalSettings([
-            '_COOKIE' => $_COOKIE,
-        ]);
+        // $_COOKIE = $request->getCookies();
+        $typo3Context = clone $this->defaultContext;
 
         $frontendUserId = $request->getServer()[ServerParameters::TYPO3_FEUSER] ?? null;
         if ($frontendUserId !== null) {
@@ -71,7 +76,7 @@ class Client extends AbstractBrowser
         }
 
         // Execute subrequest, redirects are handled by Symfony
-        $typo3Response = $this->testCase->executeFrontendRequest($typo3Request, $typo3Context, false);
+        $typo3Response = $this->testCase->executeTypo3FrontendRequest($typo3Request, $typo3Context, false);
 
         // Convert TYPO3 response to Symfony response object
         return new Response(

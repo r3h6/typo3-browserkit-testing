@@ -6,7 +6,7 @@ namespace R3H6\Typo3BrowserkitTesting\Tests\Functional;
 
 use GuzzleHttp\Psr7\Response;
 use BlastCloud\Guzzler\UsesGuzzler;
-use R3H6\Typo3BrowserkitTesting\Client;
+use R3H6\Typo3BrowserkitTesting\Typo3Client;
 use R3H6\Typo3BrowserkitTesting\WebTestCase;
 use R3H6\Typo3BrowserkitTesting\ServerParameters as ServerParameters;
 
@@ -51,15 +51,10 @@ class ApiExampleTest extends WebTestCase
                 page.10 =< styles.content.get
             '
         ]);
-
-        $GLOBALS['__TYPO3_CONF_VARS']['HTTP']['handler']['mock'] = function(){
-            return $this->guzzler->getHandlerStack();
-        };
     }
 
     /**
      * @test
-     * @group api
      */
     public function mockApi(): void
     {
@@ -74,7 +69,7 @@ class ApiExampleTest extends WebTestCase
 
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_api.csv');
 
-        $client = self::getClient($this);
+        $client = self::$typo3Client;
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'GUZZLER');
     }

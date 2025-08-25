@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace R3H6\WebTestCase\Controller;
+namespace R3H6\ExampleExtension\Controller;
 
 use Psr\Log\LoggerAwareTrait;
 use GuzzleHttp\RequestOptions;
