@@ -7,6 +7,13 @@ services:
   R3H6\WebTestCase\:
     resource: '../Classes/*'
 
+  Symfony\Component\Mailer\Event\MessageEvents: ~
+
   R3H6\WebTestCase\EventListener\RedirectResponseHandler:
+    tags:
+      - name: event.listener
+
+  mailer.message_logger_listener:
+    class: R3H6\WebTestCase\EventListener\MessageLoggerListener
     tags:
       - name: event.listener

@@ -1,16 +1,50 @@
 @import 'EXT:fluid_styled_content/Configuration/TypoScript/setup.typoscript'
 @import 'EXT:form/Configuration/TypoScript/setup.typoscript'
+@import 'EXT:felogin/Configuration/TypoScript/setup.typoscript'
 
 page >
 page = PAGE
-page.10 = TEXT
-page.10.data = page:title
-page.10.wrap = <h1>|</h1>
-page.20 = CONTENT
-page.20 {
-    table = tt_content
-    select {
-        orderBy = sorting
-        where = {#colPos}=0
+page {
+    10 = TEXT
+    10 {
+        data = page:title
+        wrap = <h1>|</h1>
+    }
+
+    20 = HMENU
+    20 {
+        1 = TMENU
+        1 {
+            NO = 1
+            NO {
+                wrapItemAndSub = <li>|</li>
+            }
+            wrap = <ul>|</ul>
+        }
+    }
+
+    30 = CONTENT
+    30 {
+        table = tt_content
+        select {
+            orderBy = sorting
+            where = {#colPos}=0
+        }
+    }
+}
+
+api >
+api = PAGE
+api {
+    typeNum = 123
+    config {
+        no_cache = 1
+        disableAllHeaderCode = 1
+        additionalHeaders = Content-Type: application/json; charset=utf-8
+    }
+    10 = EXTBASEPLUGIN
+    10 {
+        extensionName = ExampleExtension
+        pluginName = Api
     }
 }

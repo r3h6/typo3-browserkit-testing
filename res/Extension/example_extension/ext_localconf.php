@@ -2,32 +2,49 @@
 
 declare(strict_types=1);
 
+use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use R3H6\ExampleExtension\Controller\ExampleController;
+use Symfony\Component\DependencyInjection\Extension\Extension;
+
 defined('TYPO3') or die();
 
-\TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
+ExtensionUtility::configurePlugin(
+    'ExampleExtension',
+    'Show',
+    [ExampleController::class => 'show'],
+    [],
+    ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
+);
+
+ExtensionUtility::configurePlugin(
     'ExampleExtension',
     'Redirect',
-    [\R3H6\ExampleExtension\Controller\ExampleController::class => 'redirect,show'],
-    [\R3H6\ExampleExtension\Controller\ExampleController::class => 'redirect']
+    [ExampleController::class => 'redirect,show'],
+    [ExampleController::class => 'redirect'],
+    ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
 );
 
-\TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
+ExtensionUtility::configurePlugin(
     'ExampleExtension',
     'Response',
-    [\R3H6\ExampleExtension\Controller\ExampleController::class => 'response,show'],
-    [\R3H6\ExampleExtension\Controller\ExampleController::class => 'response']
+    [ExampleController::class => 'response,show'],
+    [ExampleController::class => 'response'],
+    ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
 );
 
-\TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
+ExtensionUtility::configurePlugin(
     'ExampleExtension',
     'Propagate',
-    [\R3H6\ExampleExtension\Controller\ExampleController::class => 'propagateResponse,show'],
-    [\R3H6\ExampleExtension\Controller\ExampleController::class => 'propagateResponse']
+    [ExampleController::class => 'propagateResponse,show'],
+    [ExampleController::class => 'propagateResponse'],
+    ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
 );
 
-\TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
+ExtensionUtility::configurePlugin(
     'ExampleExtension',
     'Api',
-    [\R3H6\ExampleExtension\Controller\ExampleController::class => 'api'],
-    [\R3H6\ExampleExtension\Controller\ExampleController::class => 'api']
+    [ExampleController::class => 'api'],
+    [ExampleController::class => 'api'],
+    ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
 );

@@ -1,9 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace R3H6\Typo3BrowserkitTesting;
-
 /*
  * This file is part of the Symfony package.
  *
@@ -13,22 +9,28 @@ namespace R3H6\Typo3BrowserkitTesting;
  * file that was distributed with this source code.
  */
 
+namespace R3H6\Typo3BrowserkitTesting;
+
 use PHPUnit\Framework\Constraint\LogicalNot;
+use Psr\Container\ContainerInterface;
 use Symfony\Component\Mailer\Event\MessageEvent;
+use Symfony\Component\Mailer\Event\MessageEvents;
 use Symfony\Component\Mailer\Test\Constraint as MailerConstraint;
 use Symfony\Component\Mime\RawMessage;
 use Symfony\Component\Mime\Test\Constraint as MimeConstraint;
 
 trait MailerAssertionsTrait
 {
-    public static function assertEmailCount(int $count, string $transport = null, string $message = ''): void
+    protected static ContainerInterface $container;
+
+    public static function assertEmailCount(int $count, ?string $transport = null, string $message = ''): void
     {
-        self::assertThat(self::getMailerMessages(), new MailerConstraint\EmailCount($count, $transport), $message);
+        self::assertThat(self::getMessageMailerEvents(), new MailerConstraint\EmailCount($count, $transport), $message);
     }
 
-    public static function assertQueuedEmailCount(int $count, string $transport = null, string $message = ''): void
+    public static function assertQueuedEmailCount(int $count, ?string $transport = null, string $message = ''): void
     {
-        self::assertThat(self::getMailerMessages(), new MailerConstraint\EmailCount($count, $transport, true), $message);
+        self::assertThat(self::getMessageMailerEvents(), new MailerConstraint\EmailCount($count, $transport, true), $message);
     }
 
     public static function assertEmailIsQueued(MessageEvent $event, string $message = ''): void
@@ -91,16 +93,54 @@ trait MailerAssertionsTrait
         self::assertThat($email, new MimeConstraint\EmailAddressContains($headerName, $expectedValue), $message);
     }
 
+    public static function assertEmailAddressNotContains(RawMessage $email, string $headerName, string $expectedValue, string $message = ''): void
+    {
+        self::assertThat($email, new LogicalNot(new MimeConstraint\EmailAddressContains($headerName, $expectedValue)), $message);
+    }
+
+    public static function assertEmailSubjectContains(RawMessage $email, string $expectedValue, string $message = ''): void
+    {
+        self::assertThat($email, new MimeConstraint\EmailSubjectContains($expectedValue), $message);
+    }
+
+    public static function assertEmailSubjectNotContains(RawMessage $email, string $expectedValue, string $message = ''): void
+    {
+        self::assertThat($email, new LogicalNot(new MimeConstraint\EmailSubjectContains($expectedValue)), $message);
+    }
+
+    /**
+     * @return MessageEvent[]
+     */
+    public static function getMailerEvents(?string $transport = null): array
+    {
+        return self::getMessageMailerEvents()->getEvents($transport);
+    }
+
+    public static function getMailerEvent(int $index = 0, ?string $transport = null): ?MessageEvent
+    {
+        return self::getMailerEvents($transport)[$index] ?? null;
+    }
+
     /**
      * @return RawMessage[]
      */
-    public static function getMailerMessages(string $transport = null): array
+    public static function getMailerMessages(?string $transport = null): array
     {
-        return TestTransport::getSentMessages();
+        return self::getMessageMailerEvents()->getMessages($transport);
     }
 
-    public static function getMailerMessage(int $index = 0, string $transport = null): ?RawMessage
+    public static function getMailerMessage(int $index = 0, ?string $transport = null): ?RawMessage
     {
         return self::getMailerMessages($transport)[$index] ?? null;
+    }
+
+    private static function getMessageMailerEvents(): MessageEvents
+    {
+        $container = static::$container;
+        if ($container->has('mailer.message_logger_listener')) {
+            return $container->get('mailer.message_logger_listener')->getEvents();
+        }
+
+        static::fail('A client must have Mailer enabled to make email assertions. Did you forget to require symfony/mailer?');
     }
 }

@@ -1,9 +1,13 @@
+includes:
+	- phpstan-baseline.neon
 parameters:
 	level: 6
 	paths:
 		- res
 		- src
 		- tests
+	stubFiles:
+		- phpstan-stubs/Expectation.stub.php
 	ignoreErrors:
 		- '#Variable \$_EXTKEY might not be defined.#'
 		- identifier: missingType.iterableValue

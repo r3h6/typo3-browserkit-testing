@@ -11,8 +11,7 @@ class AuthenticatedUser
 
     public function __construct(int $userId)
     {
-        WebTestCase::getTypo3Client()->setDefaultContext(InternalRequestContext::fromArray([
-            'frontendUserId' => $userId,
-        ]));
+        $defaultContext = (new InternalRequestContext())->withFrontendUserId($userId);
+        WebTestCase::getClient()->setDefaultContext($defaultContext);
     }
 }

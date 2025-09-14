@@ -6,19 +6,28 @@ namespace R3H6\Typo3BrowserkitTesting\Tests\Functional;
 
 use GuzzleHttp\Psr7\Response;
 use BlastCloud\Guzzler\UsesGuzzler;
-use R3H6\Typo3BrowserkitTesting\Typo3Client;
+use PHPUnit\Framework\Attributes\Test;
+use R3H6\Typo3BrowserkitTesting\HttpBrowser;
 use R3H6\Typo3BrowserkitTesting\WebTestCase;
+use R3H6\Typo3BrowserkitTesting\TestTransport;
+use Symfony\Component\Mailer\Transport\NullTransport;
 use R3H6\Typo3BrowserkitTesting\ServerParameters as ServerParameters;
 
 class ApiExampleTest extends WebTestCase
 {
     use UsesGuzzler;
 
+    protected bool $autoConfigure = false;
     protected array $coreExtensionsToLoad = [
         'fluid_styled_content',
     ];
+    protected array $testExtensionsToLoad = [
+        'typo3conf/ext/example_extension',
+    ];
     protected array $configurationToUseInTestInstance = [
-        'MAIL' => WebTestCase::MAIL_SETTINGS,
+        'MAIL' => [
+            'transport' => NullTransport::class,
+        ],
         'LOG' => [
             'R3H6' => [
                 'WebTestCase' => [
@@ -53,9 +62,7 @@ class ApiExampleTest extends WebTestCase
         ]);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function mockApi(): void
     {
         $this->guzzler->expects($this->once())
@@ -69,7 +76,7 @@ class ApiExampleTest extends WebTestCase
 
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_api.csv');
 
-        $client = self::$typo3Client;
+        $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'GUZZLER');
     }

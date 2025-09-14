@@ -7,35 +7,67 @@ use TYPO3\CMS\Core\Http\Uri;
 
 trait PhpBrowserTrait
 {
-    private string $baseUrl;
+    private string $baseUrl = '';
 
     public function amOnUrl(string $url): void
     {
         $this->baseUrl = $url;
-        WebTestCase::getTypo3Client()->request('GET', $url);
+        WebTestCase::getClient()->request('GET', $url);
     }
 
     public function amOnPage(string $page): void
     {
-        WebTestCase::getTypo3Client()->request('GET', (string)$this->mergeUrl($page));
+        WebTestCase::getClient()->request('GET', (string)$this->mergeUrl($page));
     }
 
-    public function fillField(string $selector, string|int $value): void {}
-
-    public function click(string $selector, string $context = null): void
+    public function fillField(string $selector, string|int $value): void
     {
-        WebTestCase::getTypo3Client()->clickLink($selector);
+        WebTestCase::getClient()->setInputValue($selector, $value);
     }
 
-    public function selectOption(string $selector, string|int $value): void {}
+    public function click(string $selector, ?string $context = null): void
+    {
+        WebTestCase::getClient()->clickElement($selector, $context);
+    }
 
-    public function submitForm(string $selector, array $params = [], string $button = null): void
+    public function selectOption(string ...$selectors): void
+    {
+        if (empty($selectors)) {
+            throw new \RuntimeException('No selectors provided to selectOption');
+        }
+        foreach ($selectors as $selector) {
+            $option = WebTestCase::getClient()->findElement($selector);
+            $optionNode = $option->getNode(0);
+            if (!$optionNode instanceof \DOMElement) {
+                throw new \RuntimeException('The selected option is not a valid DOM element.');
+            }
+            $select = $option->closest('select');
+            $selectNode = $select->getNode(0);
+            if (!$selectNode instanceof \DOMElement) {
+                throw new \RuntimeException('The option is not inside a select element.');
+            }
+            $multiple = $selectNode->hasAttribute('multiple');
+            if ($multiple === false) {
+                $options = $select->filter('option[selected]');
+                foreach ($options as $i => $opt) {
+                    if (!$opt instanceof \DOMElement) {
+                        continue;
+                    }
+                    $opt->removeAttribute('selected');
+                }
+            }
+            $optionNode->setAttribute('selected', 'selected');
+        }
+    }
+
+    public function submitForm(string $selector, array $params = [], ?string $button = null): void
     {
         if ($button) {
-            WebTestCase::getTypo3Client()->clickSubmitButton($button, $params);
+            $button = WebTestCase::getClient()->findElement($button, $selector);
+            WebTestCase::getClient()->clickButton($button, $params);
         }
-        $form = WebTestCase::getTypo3Client()->filter($selector)->form($params);
-        WebTestCase::getTypo3Client()->submit($form);
+        $form = WebTestCase::getClient()->getCrawler()->filter($selector)->form($params);
+        WebTestCase::getClient()->submit($form);
     }
 
     public function see(string $text, string $selector = 'body'): void
@@ -58,9 +90,27 @@ trait PhpBrowserTrait
         WebTestCase::assertSelectorNotExists($selector);
     }
 
-    public function seeInCurrentUrl(string $url): void {}
+    public function seeInTitle(string $text): void
+    {
+        WebTestCase::assertSelectorTextContains('html > head > title', $text);
+    }
 
-    public function dontSeeInCurrentUrl(string $url): void {}
+    public function dontSeeInTitle(string $text): void
+    {
+        WebTestCase::assertSelectorTextNotContains('html > head > title', $text);
+    }
+
+    public function seeInCurrentUrl(string $expected): void
+    {
+        $currentUrl = WebTestCase::getClient()->getRequest()->getUri();
+        WebTestCase::assertStringContainsString($expected, $currentUrl);
+    }
+
+    public function dontSeeInCurrentUrl(string $expected): void
+    {
+        $currentUrl = WebTestCase::getClient()->getRequest()->getUri();
+        WebTestCase::assertStringNotContainsString($expected, $currentUrl);
+    }
 
     public function seeLink(string $link): void
     {

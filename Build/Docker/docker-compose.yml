@@ -1,4 +1,3 @@
-version: '2.3'
 services:
 
   composer:
@@ -10,6 +9,7 @@ services:
     - /etc/group:/etc/group:ro
     environment:
       typo3DatabaseDriver: pdo_sqlite
+      typo3DatabaseDump: ${typo3DatabaseDump:?err}
     working_dir: ${ROOT_DIR:?err}
     entrypoint: composer
 
@@ -22,10 +22,11 @@ services:
     - /etc/group:/etc/group:ro
     environment:
       typo3DatabaseDriver: pdo_sqlite
+      typo3DatabaseDump: ${typo3DatabaseDump:?err}
     working_dir: ${ROOT_DIR:?err}
     entrypoint: .Build/bin/phpunit
 
-  functional:
+  application:
     image: ${DOCKER_PHP_IMAGE:?err}
     user: ${HOST_UID:?err}
     volumes:
@@ -34,5 +35,6 @@ services:
     - /etc/group:/etc/group:ro
     environment:
       typo3DatabaseDriver: pdo_sqlite
+      typo3DatabaseDump: ${typo3DatabaseDump:?err}
     working_dir: ${ROOT_DIR:?err}
     entrypoint: .Build/bin/phpunit

@@ -4,19 +4,28 @@ declare(strict_types=1);
 
 namespace R3H6\Typo3BrowserkitTesting\Tests\Functional;
 
+use PHPUnit\Framework\Attributes\Test;
 use R3H6\Typo3BrowserkitTesting\WebTestCase;
-use R3H6\Typo3BrowserkitTesting\Typo3Client;
+use R3H6\Typo3BrowserkitTesting\TestTransport;
 use R3H6\Typo3BrowserkitTesting\ServerParameters as ServerParameters;
+use Symfony\Component\Mailer\Transport\NullTransport;
+use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 
 class DomCrawlerAssertionsTest extends WebTestCase
 {
+    protected bool $autoConfigure = false;
     protected array $coreExtensionsToLoad = [
         'fluid_styled_content',
         'felogin',
         'form',
     ];
+    protected array $testExtensionsToLoad = [
+        'typo3conf/ext/example_extension',
+    ];
     protected array $configurationToUseInTestInstance = [
-        'MAIL' => WebTestCase::MAIL_SETTINGS,
+        'MAIL' => [
+            'transport' => NullTransport::class,
+        ],
         'LOG' => [
             'R3H6' => [
                 'WebTestCase' => [
@@ -68,14 +77,23 @@ class DomCrawlerAssertionsTest extends WebTestCase
         ]);
     }
 
-    /**
-     * @test
-     */
+
+    #[Test]
+    public function showAction(): void
+    {
+        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_show.csv');
+
+        $client = $this->createClient();
+        $crawler = $client->request('GET', '/page2');
+        self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
+    }
+
+    #[Test]
     public function submitForm(): void
     {
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/form_framework.csv');
 
-        $client = self::$typo3Client;
+        $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
 
         $formNamespace = 'tx_form_formframework[ext-form-simple-contact-form-example-1]';
@@ -90,7 +108,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
         $crawler = $client->submit($form);
         self::assertSelectorTextSame('.frame-type-form_formframework legend', 'Summary page', "Response:\n" . $client->getResponse());
 
-        $crawler = $client->clickSubmitButton('Submit');
+        $crawler = $client->clickElement('Submit');
         self::assertSelectorTextContains('body', 'Thank you!', "Response:\n" . $client->getResponse());
 
         $email = self::getMailerMessage();
@@ -98,16 +116,14 @@ class DomCrawlerAssertionsTest extends WebTestCase
 
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function login(): void
     {
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/felogin_login.csv');
 
-        $client = self::$typo3Client;
+        $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
-        $crawler = $client->clickSubmitButton('Login', [
+        $crawler = $client->clickButton('Login', [
             'user' => 'testuser',
             'pass' => 'password',
         ]);
@@ -118,59 +134,48 @@ class DomCrawlerAssertionsTest extends WebTestCase
         self::assertInputValueSame('logintype', 'logout', "Response:\n" . $client->getResponse());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function accessRestrictedContent(): void
     {
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/accessRestrictedContent.csv');
 
-        $client = self::$typo3Client;
+        $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextNotContains('body', 'Only for your eyes', "Response:\n" . $client->getResponse());
-
-        $client->setServerParameter(ServerParameters::TYPO3_FEUSER, '1');
+        $context = (new InternalRequestContext())->withFrontendUserId(1);
+        $client->setDefaultContext($context);
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'Only for your eyes', "Response:\n" . $client->getResponse());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function handleLegacyRedirect(): void
     {
-        error_reporting(E_ALL & ~E_USER_DEPRECATED);
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_redirect.csv');
 
-        $client = self::$typo3Client;
+        $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
         self::assertSelectorTextContains('body', 'Redirected from', "Response:\n" . $client->getResponse());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function handleResponseRedirect(): void
     {
-        error_reporting(E_ALL & ~E_USER_DEPRECATED);
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_response.csv');
 
-        $client = self::$typo3Client;
+        $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
         self::assertSelectorTextContains('body', 'Redirected from', "Response:\n" . $client->getResponse());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function handlePropagateExceptionRedirect(): void
     {
-        error_reporting(E_ALL & ~E_USER_DEPRECATED);
         $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_propagate.csv');
 
-        $client = self::$typo3Client;
+        $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
         self::assertSelectorTextContains('body', 'Redirected from', "Response:\n" . $client->getResponse());
