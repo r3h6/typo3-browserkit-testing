@@ -6,6 +6,7 @@
 		"symfony/browser-kit": "*",
 		"symfony/css-selector": "*",
 		"symfony/http-client-contracts": "^3.6",
+		"symfony/process": "*",
 		"typo3/testing-framework": "^8.2"
 	},
 	"license": "MIT",

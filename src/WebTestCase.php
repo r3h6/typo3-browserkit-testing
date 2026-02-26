@@ -8,6 +8,7 @@ use BlastCloud\Guzzler\Guzzler;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Mailer\Transport\NullTransport;
+use Symfony\Component\Process\Process;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
@@ -83,22 +84,73 @@ abstract class WebTestCase extends FunctionalTestCase
 
     protected function importSQLDataSet(string $sqlFile): void
     {
-        $content = file_get_contents($sqlFile);
-        if ($content === false) {
+        if (!is_file($sqlFile) || !is_readable($sqlFile)) {
+            throw new \RuntimeException('SQL file not readable: ' . $sqlFile);
+        }
+
+        $sqlContent = file_get_contents($sqlFile);
+        if ($sqlContent === false) {
             throw new \RuntimeException('Could not read SQL file: ' . $sqlFile);
         }
 
-        // Split only on semicolon followed by a newline (optionally spaces/tabs)
-        $parts = preg_split('/;[ \t]*\r?\n/', $content);
-        $connection = $this->getConnectionPool()->getConnectionByName('Default');
+        $params = $this->getConnectionPool()->getConnectionByName('Default')->getParams();
+        $command = $this->buildMysqlCommand($params);
+        $env = $this->buildMysqlEnvironment($params);
 
-        foreach ($parts as $part) {
-            $statement = trim($part);
-            if ($statement === '') {
-                continue;
-            }
-            $connection->executeStatement($statement);
+        $process = new Process($command, null, $env, $sqlContent);
+        $process->setTimeout(120);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new \RuntimeException(
+                sprintf('MySQL import failed (%s): %s', $sqlFile, $process->getErrorOutput() ?: $process->getOutput())
+            );
         }
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     * @return array<int, string>
+     */
+    private function buildMysqlCommand(array $params): array
+    {
+        $database = $params['dbname'] ?? $params['database'] ?? null;
+        if ($database === null) {
+            throw new \RuntimeException('No database name configured for connection "Default".');
+        }
+
+        $command = ['mysql', '--default-character-set=utf8mb4'];
+
+        if (!empty($params['unix_socket'])) {
+            $command[] = '--socket=' . $params['unix_socket'];
+        } else {
+            $command[] = '--host=' . ($params['host'] ?? '127.0.0.1');
+            if (!empty($params['port'])) {
+                $command[] = '--port=' . $params['port'];
+            }
+        }
+
+        if (!empty($params['user'])) {
+            $command[] = '--user=' . $params['user'];
+        }
+
+        $command[] = $database;
+
+        return $command;
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     * @return array<string, string>
+     */
+    private function buildMysqlEnvironment(array $params): array
+    {
+        $env = [];
+        if (!empty($params['password'])) {
+            $env['MYSQL_PWD'] = (string)$params['password'];
+        }
+        // Cast $_ENV to array to satisfy static analysis and keep runtime behavior.
+        return $env + (array)$_ENV;
     }
 
     private function setUpDatabase(): void
@@ -141,9 +193,12 @@ abstract class WebTestCase extends FunctionalTestCase
         ];
         $this->configurationToUseInTestInstance = array_replace_recursive($defaultConfiguration, $this->configurationToUseInTestInstance);
 
-        $this->typo3DatabaseDump = $this->typo3DatabaseDump
-            ?? getenv('typo3DatabaseDump')
-            ?: null;
+        // Normalize environment value: getenv() can return false on failure.
+        // Avoid complex ??/:? expressions to make intent explicit for static analysis.
+        if ($this->typo3DatabaseDump === null) {
+            $envValue = getenv('typo3DatabaseDump');
+            $this->typo3DatabaseDump = ($envValue === false) ? null : $envValue;
+        }
 
         if (isset($this->guzzler) && $this->guzzler instanceof Guzzler) {
             $GLOBALS['__TYPO3_CONF_VARS']['HTTP']['handler']['mock'] = function () {
