@@ -23,4 +23,9 @@ defined('TYPO3') or die();
         'Api',
         'Api plugin'
     );
+    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerPlugin(
+        'ExampleExtension',
+        'Upload',
+        'Upload plugin'
+    );
 })();

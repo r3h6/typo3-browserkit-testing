@@ -28,6 +28,3 @@ You can find details on [Symfony's Testing Documentation](https://symfony.com/do
 ✅ Crawler Assertions<br>
 ✅ Mailer Assertions<br>
 
-## Known problems
-
-- File upload not (yet) implemented

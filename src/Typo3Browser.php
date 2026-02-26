@@ -13,12 +13,15 @@ use Symfony\Component\BrowserKit\HttpBrowser;
 use Symfony\Component\BrowserKit\Request;
 use Symfony\Component\BrowserKit\Response;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\DomCrawler\Field\FileFormField;
+use Symfony\Component\DomCrawler\Form;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 use Symfony\Component\Mime\Part\AbstractPart;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Mime\Part\TextPart;
 use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Http\UploadedFile as Typo3UploadedFile;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
@@ -28,6 +31,8 @@ use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestCon
  */
 final class Typo3Browser extends AbstractBrowser
 {
+    /** @var array<string, string> */
+    private array $pendingFileUploads = [];
     public function __construct(
         private readonly WebTestCase $testCase,
         private ?InternalRequestContext $context = null,
@@ -146,6 +151,8 @@ final class Typo3Browser extends AbstractBrowser
                 } else {
                     $node->removeAttribute('checked');
                 }
+            } elseif ($type === 'file') {
+                $this->queueFileUpload($node, (string)$value);
             } else {
                 $node->setAttribute('value', (string)$value);
             }
@@ -179,6 +186,16 @@ final class Typo3Browser extends AbstractBrowser
         throw new \RuntimeException('Selected element is not a supported form field (input/textarea/select/option).');
     }
 
+    public function submit(Form $form, array $values = [], array $serverParameters = []): Crawler
+    {
+        $appliedFields = $this->applyPendingFileUploads($form);
+        try {
+            return parent::submit($form, $values, $serverParameters);
+        } finally {
+            $this->forgetAppliedFileUploads($appliedFields);
+        }
+    }
+
     /**
      * @param \Symfony\Component\BrowserKit\Request $request
      * @return HttpFoundationResponse
@@ -194,6 +211,15 @@ final class Typo3Browser extends AbstractBrowser
         }
 
         foreach ($extraHeaders as $name => $value) {
+            if (is_int($name)) {
+                $headerLine = is_array($value) ? (string)reset($value) : (string)$value;
+                if (!str_contains($headerLine, ':')) {
+                    continue;
+                }
+                [$rawName, $rawValue] = explode(':', $headerLine, 2);
+                $typo3Request = $typo3Request->withHeader(trim($rawName), trim($rawValue));
+                continue;
+            }
             $typo3Request = $typo3Request->withHeader($name, $value);
         }
 
@@ -202,6 +228,10 @@ final class Typo3Browser extends AbstractBrowser
         }
 
         $typo3Request = $typo3Request->withCookieParams($request->getCookies());
+        $uploadedFiles = $this->createUploadedFiles($request->getFiles());
+        if ($uploadedFiles !== []) {
+            $typo3Request = $typo3Request->withUploadedFiles($uploadedFiles);
+        }
 
         $typo3Context = $this->context ?? new InternalRequestContext();
         $typo3Response = $this->testCase->doFrontendRequest($typo3Request, $typo3Context);
@@ -253,6 +283,63 @@ final class Typo3Browser extends AbstractBrowser
         $path = Environment::getVarPath() . '/typo3-browserkit-testing/' . uniqid('snapshot-', true) . '.md';
         GeneralUtility::mkdir_deep(dirname($path));
         GeneralUtility::writeFile($path, $markdown);
+    }
+
+    private function queueFileUpload(\DOMElement $node, string $filePath): void
+    {
+        $name = (string)$node->getAttribute('name');
+        if ($name === '') {
+            throw new \RuntimeException('File input requires a name attribute.');
+        }
+        if (!is_file($filePath) || !is_readable($filePath)) {
+            throw new \RuntimeException('File for upload is not readable: ' . $filePath);
+        }
+
+        $this->pendingFileUploads[$name] = $filePath;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function applyPendingFileUploads(Form $form): array
+    {
+        $applied = [];
+        $this->traverseFormFields($form->all(), function (FileFormField $field) use (&$applied): void {
+            $name = $field->getName();
+            if (!isset($this->pendingFileUploads[$name])) {
+                return;
+            }
+            $field->upload($this->pendingFileUploads[$name]);
+            $applied[] = $name;
+        });
+
+        return $applied;
+    }
+
+    /**
+     * @param array<string, mixed> $fields
+     */
+    private function traverseFormFields(array $fields, callable $callback): void
+    {
+        foreach ($fields as $field) {
+            if (\is_array($field)) {
+                $this->traverseFormFields($field, $callback);
+                continue;
+            }
+            if ($field instanceof FileFormField) {
+                $callback($field);
+            }
+        }
+    }
+
+    /**
+     * @param string[] $applied
+     */
+    private function forgetAppliedFileUploads(array $applied): void
+    {
+        foreach ($applied as $name) {
+            unset($this->pendingFileUploads[$name]);
+        }
     }
 
     // {{{ Copied from HttpBrowser
@@ -355,6 +442,67 @@ final class Typo3Browser extends AbstractBrowser
         }
 
         return $uploadedFiles;
+    }
+
+    /**
+     * @param array<mixed> $files
+     * @return array<mixed>
+     */
+    private function createUploadedFiles(array $files): array
+    {
+        $normalized = [];
+        foreach ($files as $name => $file) {
+            if ($file instanceof Typo3UploadedFile) {
+                $normalized[$name] = $file;
+                continue;
+            }
+            if (!\is_array($file)) {
+                continue;
+            }
+            $normalized[$name] = $this->createUploadedFileFromSpec($file);
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @return Typo3UploadedFile|array<mixed>
+     */
+    private function createUploadedFileFromSpec(array $spec): Typo3UploadedFile|array
+    {
+        if (!isset($spec['tmp_name'])) {
+            return $this->createUploadedFiles($spec);
+        }
+
+        if (\is_array($spec['tmp_name'])) {
+            $files = [];
+            foreach ($spec['tmp_name'] as $key => $tmpName) {
+                $files[$key] = $this->createUploadedFileFromSpec([
+                    'tmp_name' => $tmpName,
+                    'name' => $spec['name'][$key] ?? null,
+                    'type' => $spec['type'][$key] ?? null,
+                    'error' => $spec['error'][$key] ?? \UPLOAD_ERR_NO_FILE,
+                    'size' => $spec['size'][$key] ?? 0,
+                ]);
+            }
+            return $files;
+        }
+
+        $tmpName = (string)$spec['tmp_name'];
+        $input = $tmpName !== '' && is_file($tmpName)
+            ? $tmpName
+            : fopen('php://temp', 'rb+');
+        if ($input === false) {
+            throw new \RuntimeException('Unable to create temporary stream for uploaded file.');
+        }
+
+        return new Typo3UploadedFile(
+            $input,
+            (int)($spec['size'] ?? 0),
+            (int)($spec['error'] ?? \UPLOAD_ERR_NO_FILE),
+            isset($spec['name']) ? (string)$spec['name'] : null,
+            isset($spec['type']) ? (string)$spec['type'] : null,
+        );
     }
 
     // }}}

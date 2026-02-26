@@ -48,3 +48,11 @@ ExtensionUtility::configurePlugin(
     [ExampleController::class => 'api'],
     ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
 );
+
+ExtensionUtility::configurePlugin(
+    'ExampleExtension',
+    'Upload',
+    [ExampleController::class => 'upload'],
+    [ExampleController::class => 'upload'],
+    ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
+);
