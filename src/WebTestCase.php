@@ -160,7 +160,7 @@ abstract class WebTestCase extends FunctionalTestCase
     private function setUpTestExtensionsToLoad(): void
     {
         $this->testExtensionsToLoad = array_merge(
-            $this->getExtensionPaths('typo3-cms-extension', 'typo3conf/ext/'),
+            $this->getExtensionPaths('typo3-cms-extension'),
             $this->testExtensionsToLoad
         );
     }
@@ -168,7 +168,7 @@ abstract class WebTestCase extends FunctionalTestCase
     private function setUpCoreExtensionsToLoad(): void
     {
         $this->coreExtensionsToLoad = array_merge(
-            $this->getExtensionPaths('typo3-cms-framework', ''),
+            $this->getExtensionPaths('typo3-cms-framework'),
             $this->coreExtensionsToLoad
         );
     }
@@ -188,19 +188,32 @@ abstract class WebTestCase extends FunctionalTestCase
         ], $this->pathsToLinkInTestInstance);
     }
 
-    private function getExtensionPaths(string $packageType, string $pathPrefix): array
+    private function getExtensionPaths(string $packageType): array
     {
+        $pathPrefix = match ($packageType) {
+            'typo3-cms-extension' => 'typo3conf/ext/',
+            'typo3-cms-framework' => 'typo3/sysext/',
+            default => throw new \InvalidArgumentException('Unsupported package type: ' . $packageType),
+        };
         $extensionsToLoad = [];
         $packages = \Composer\InstalledVersions::getInstalledPackagesByType($packageType);
+        $projectRoot = realpath(\Composer\InstalledVersions::getRootPackage()['install_path']);
+
+        $fs = new Filesystem();
         foreach ($packages as $package) {
             $extensionPath = \Composer\InstalledVersions::getInstallPath($package);
-            $composerJsonPath = $extensionPath . '/composer.json';
+            $composerJsonPath = realpath($extensionPath . '/composer.json');
+            $relativeComposerJsonPath = $fs->makePathRelative($composerJsonPath, $projectRoot);
+            $finalPathPrefix = $pathPrefix;
+            if (!str_starts_with($relativeComposerJsonPath, 'vendor/')) {
+                $finalPathPrefix = '../' . dirname(dirname($relativeComposerJsonPath)) . '/';
+            }
             $json = json_decode(file_get_contents($composerJsonPath), true);
             $extensionKey = $json['extra']['typo3/cms']['extension-key'] ?? null;
             if ($extensionKey === null) {
                 continue;
             }
-            $extensionsToLoad[] = $pathPrefix . $extensionKey;
+            $extensionsToLoad[] = $finalPathPrefix . $extensionKey;
         }
         return $extensionsToLoad;
     }
