@@ -198,15 +198,20 @@ abstract class WebTestCase extends FunctionalTestCase
         $extensionsToLoad = [];
         $packages = \Composer\InstalledVersions::getInstalledPackagesByType($packageType);
         $projectRoot = realpath(\Composer\InstalledVersions::getRootPackage()['install_path']);
+        $rootComposer = json_decode(file_get_contents($projectRoot . '/composer.json'), true);
+        $vendorDir = realpath($projectRoot . '/' . ($rootComposer['config']['vendor-dir'] ?? 'vendor'));
+        if (!is_dir($vendorDir)) {
+            throw new \RuntimeException('Vendor directory not found: ' . $vendorDir);
+        }
+        $webDir = realpath($projectRoot . '/' . ($rootComposer['extra']['typo3/cms']['web-dir'] ?? 'public'));
 
         $fs = new Filesystem();
         foreach ($packages as $package) {
             $extensionPath = \Composer\InstalledVersions::getInstallPath($package);
             $composerJsonPath = realpath($extensionPath . '/composer.json');
-            $relativeComposerJsonPath = $fs->makePathRelative($composerJsonPath, $projectRoot);
             $finalPathPrefix = $pathPrefix;
-            if (!str_starts_with($relativeComposerJsonPath, 'vendor/')) {
-                $finalPathPrefix = '../' . dirname(dirname($relativeComposerJsonPath)) . '/';
+            if (!str_starts_with($composerJsonPath, $vendorDir)) {
+                $finalPathPrefix = $fs->makePathRelative(dirname(dirname($composerJsonPath)), $webDir);
             }
             $json = json_decode(file_get_contents($composerJsonPath), true);
             $extensionKey = $json['extra']['typo3/cms']['extension-key'] ?? null;
