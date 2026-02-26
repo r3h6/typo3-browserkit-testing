@@ -26,25 +26,11 @@ abstract class WebTestCase extends FunctionalTestCase
     use MailerAssertionsTrait;
 
     protected bool $autoConfigure = true;
-    protected string $typo3DatabaseDump;
+    protected ?string $typo3DatabaseDump = null;
 
     public function setUp(): void
     {
-        $this->typo3DatabaseDump = $this->typo3DatabaseDump
-            ?? getenv('typo3DatabaseDump')
-            ?: 'tests/Application/Fixtures/Database/*.sql';
-
-        if (isset($this->guzzler) && $this->guzzler instanceof Guzzler) {
-            $GLOBALS['__TYPO3_CONF_VARS']['HTTP']['handler']['mock'] = function () {
-                return $this->guzzler->getHandlerStack();
-            };
-        }
-
-        $this->testExtensionsToLoad = array_merge(
-            [__DIR__ . '/../res/Extension/web_test_case'],
-            $this->testExtensionsToLoad,
-        );
-
+        $this->setUpDefaultConfiguration();
         $this->createClient(); // Initialize client early for context setup
 
         if (!$this->autoConfigure) {
@@ -56,7 +42,6 @@ abstract class WebTestCase extends FunctionalTestCase
         $this->setUpTestExtensionsToLoad();
         $this->setUpCoreExtensionsToLoad();
         $this->setUpSitesConfiguration();
-        $this->setUpConfigurationToUse();
         parent::setUp();
         $this->setUpDatabase();
         self::$container = $this->getContainer();
@@ -148,13 +133,29 @@ abstract class WebTestCase extends FunctionalTestCase
         }
     }
 
-    private function setUpConfigurationToUse(): void
+    private function setUpDefaultConfiguration(): void
     {
-        ArrayUtility::mergeRecursiveWithOverrule($this->configurationToUseInTestInstance, [
+        $defaultConfiguration = [
             'MAIL' => [
                 'transport' => NullTransport::class,
             ],
-        ]);
+        ];
+        $this->configurationToUseInTestInstance = array_replace_recursive($defaultConfiguration, $this->configurationToUseInTestInstance);
+
+        $this->typo3DatabaseDump = $this->typo3DatabaseDump
+            ?? getenv('typo3DatabaseDump')
+            ?: null;
+
+        if (isset($this->guzzler) && $this->guzzler instanceof Guzzler) {
+            $GLOBALS['__TYPO3_CONF_VARS']['HTTP']['handler']['mock'] = function () {
+                return $this->guzzler->getHandlerStack();
+            };
+        }
+
+        $this->testExtensionsToLoad = array_merge(
+            [__DIR__ . '/../res/Extension/web_test_case'],
+            $this->testExtensionsToLoad,
+        );
     }
 
     private function setUpTestExtensionsToLoad(): void
