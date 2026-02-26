@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace R3H6\Typo3BrowserkitTesting;
 
 use GuzzleHttp\Psr7\Utils;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\BrowserKit\Exception\LogicException;
 use Symfony\Component\BrowserKit\HttpBrowser;
@@ -16,6 +18,8 @@ use Symfony\Component\Mime\Part\AbstractPart;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Mime\Part\TextPart;
+use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 
@@ -202,6 +206,8 @@ final class Typo3Browser extends AbstractBrowser
         $typo3Context = $this->context ?? new InternalRequestContext();
         $typo3Response = $this->testCase->doFrontendRequest($typo3Request, $typo3Context);
 
+        $this->makeSnapshot($typo3Request, $typo3Response);
+
         return new HttpFoundationResponse(
             (string)$typo3Response->getBody(),
             $typo3Response->getStatusCode(),
@@ -219,6 +225,34 @@ final class Typo3Browser extends AbstractBrowser
             $response->getStatusCode(),
             $response->headers->all(),
         );
+    }
+
+    private function makeSnapshot(ServerRequestInterface $typo3Request, ResponseInterface $typo3Response): void
+    {
+        $markdown = "# Snapshot\n\n";
+        $markdown .= "## Request\n";
+        $markdown .= '- **Method:** ' . $typo3Request->getMethod() . "\n";
+        $markdown .= '- **URI:** ' . $typo3Request->getUri() . "\n";
+        $markdown .= "- **Headers:**\n";
+        foreach ($typo3Request->getHeaders() as $name => $value) {
+            $markdown .= "    - `$name`: " . implode(', ', $value) . "\n";
+        }
+        $markdown .= "- **Body:**\n```\n" . $typo3Request->getBody() . "\n```\n";
+        $markdown .= "- **Cookies:**\n";
+        foreach ($typo3Request->getCookieParams() as $name => $value) {
+            $markdown .= "    - `$name`: $value\n";
+        }
+        $markdown .= "\n## Response\n";
+        $markdown .= '- **Status Code:** ' . $typo3Response->getStatusCode() . "\n";
+        $markdown .= "- **Headers:**\n";
+        foreach ($typo3Response->getHeaders() as $name => $value) {
+            $markdown .= "    - `$name`: " . implode(', ', $value) . "\n";
+        }
+        $markdown .= "- **Body:**\n\n```html\n" . $typo3Response->getBody() . "\n```\n";
+
+        $path = Environment::getVarPath() . '/typo3-browserkit-testing/' . uniqid('snapshot-', true) . '.md';
+        GeneralUtility::mkdir_deep(dirname($path));
+        GeneralUtility::writeFile($path, $markdown);
     }
 
     // {{{ Copied from HttpBrowser
