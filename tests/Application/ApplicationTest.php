@@ -43,10 +43,10 @@ class ApplicationTest extends WebTestCase
 
     #[Test]
     public function testSite(): void
-    { 
+    {
         $client = $this->createClient();
         $crawler = $client->request('GET', '/');
-        
+
         // self::assertSame(' ', $crawler->outerHtml());
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('h1', 'TYPO3');
@@ -81,9 +81,9 @@ class ApplicationTest extends WebTestCase
 
 
     protected array $fixturesToLoad = [
-        __DIR__ . '/../../res/Fixtures/Database/pages.csv',
-        __DIR__ . '/../../res/Fixtures/Database/sys_template.csv',
-        __DIR__ . '/../../res/Fixtures/Database/form_framework.csv',
+        __DIR__ . '/Fixtures/Database/pages.csv',
+        __DIR__ . '/Fixtures/Database/sys_template.csv',
+        __DIR__ . '/Fixtures/Database/form_framework.csv',
     ];
 
     public function testFoo(): void

@@ -44,7 +44,7 @@ class ApiExampleTest extends WebTestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/pages.csv');
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Database/pages.csv');
         $this->setUpSites(1);
         $this->setUpFrontendRootPage(1, [
             'setup' => [
@@ -74,7 +74,7 @@ class ApiExampleTest extends WebTestCase
             ])
             ->willRespond(new Response(200, [], 'GUZZLER'));
 
-        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_api.csv');
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Database/webtestcase_api.csv');
 
         $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');

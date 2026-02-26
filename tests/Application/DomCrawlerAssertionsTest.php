@@ -53,13 +53,13 @@ class DomCrawlerAssertionsTest extends WebTestCase
     ];
 
     protected array $pathsToLinkInTestInstance = [
-        '../../../../../../res/Fixtures/Folder/fileadmin/form_definitions' => 'fileadmin/form_definitions'
+        '../../../../../../tests/Application/Fixtures/Folder/fileadmin/form_definitions' => 'fileadmin/form_definitions'
     ];
 
     public function setUp(): void
     {
         parent::setUp();
-        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/pages.csv');
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Database/pages.csv');
         $this->setUpSites(1);
         $this->setUpFrontendRootPage(1, [
             'setup' => [
@@ -81,7 +81,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     #[Test]
     public function showAction(): void
     {
-        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_show.csv');
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Database/webtestcase_show.csv');
 
         $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
@@ -91,7 +91,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     #[Test]
     public function submitForm(): void
     {
-        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/form_framework.csv');
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Database/form_framework.csv');
 
         $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
@@ -119,7 +119,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     #[Test]
     public function login(): void
     {
-        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/felogin_login.csv');
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Database/felogin_login.csv');
 
         $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
@@ -137,7 +137,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     #[Test]
     public function accessRestrictedContent(): void
     {
-        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/accessRestrictedContent.csv');
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Database/accessRestrictedContent.csv');
 
         $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
@@ -151,7 +151,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     #[Test]
     public function handleLegacyRedirect(): void
     {
-        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_redirect.csv');
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Database/webtestcase_redirect.csv');
 
         $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
@@ -162,7 +162,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     #[Test]
     public function handleResponseRedirect(): void
     {
-        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_response.csv');
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Database/webtestcase_response.csv');
 
         $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
@@ -173,7 +173,7 @@ class DomCrawlerAssertionsTest extends WebTestCase
     #[Test]
     public function handlePropagateExceptionRedirect(): void
     {
-        $this->importCSVDataSet(__DIR__ . '/../../res/Fixtures/Database/webtestcase_propagate.csv');
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Database/webtestcase_propagate.csv');
 
         $client = $this->createClient();
         $crawler = $client->request('GET', '/page2');
