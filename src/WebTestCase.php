@@ -9,7 +9,6 @@ use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Mailer\Transport\NullTransport;
 use TYPO3\CMS\Core\Core\Environment;
-use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
