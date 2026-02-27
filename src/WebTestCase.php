@@ -27,11 +27,15 @@ abstract class WebTestCase extends FunctionalTestCase
 
     protected bool $autoConfigure = true;
     protected ?string $typo3DatabaseDump = null;
-    private string $projectRoot;
+    private static string $projectRoot;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$projectRoot = realpath(\Composer\InstalledVersions::getRootPackage()['install_path']);
+    }
 
     public function setUp(): void
     {
-        $this->projectRoot = realpath(\Composer\InstalledVersions::getRootPackage()['install_path']);
         $this->setUpDefaultConfiguration();
         $this->createClient(); // Initialize client early for context setup
 
@@ -163,7 +167,7 @@ abstract class WebTestCase extends FunctionalTestCase
         }
 
         if (PathUtility::isAbsolutePath($pattern) === false) {
-            $pattern = $this->projectRoot . '/' . ltrim($pattern, '/\\');
+            $pattern = self::$projectRoot . '/' . ltrim($pattern, '/\\');
         }
 
         $files = glob($pattern);
@@ -233,7 +237,7 @@ abstract class WebTestCase extends FunctionalTestCase
     {
         $fs = new Filesystem();
 
-        $sitesPath = $this->projectRoot . '/config/sites';
+        $sitesPath = self::$projectRoot . '/config/sites';
         $instancePath = self::getInstancePath();
 
         $relativeSitesPath = $fs->makePathRelative($sitesPath, $instancePath);
@@ -252,12 +256,12 @@ abstract class WebTestCase extends FunctionalTestCase
         };
         $extensionsToLoad = [];
         $packages = \Composer\InstalledVersions::getInstalledPackagesByType($packageType);
-        $rootComposer = json_decode(file_get_contents($this->projectRoot . '/composer.json'), true);
-        $vendorDir = realpath($this->projectRoot . '/' . ($rootComposer['config']['vendor-dir'] ?? 'vendor'));
+        $rootComposer = json_decode(file_get_contents(self::$projectRoot . '/composer.json'), true);
+        $vendorDir = realpath(self::$projectRoot . '/' . ($rootComposer['config']['vendor-dir'] ?? 'vendor'));
         if (!is_dir($vendorDir)) {
             throw new \RuntimeException('Vendor directory not found: ' . $vendorDir);
         }
-        $webDir = realpath($this->projectRoot . '/' . ($rootComposer['extra']['typo3/cms']['web-dir'] ?? 'public'));
+        $webDir = realpath(self::$projectRoot . '/' . ($rootComposer['extra']['typo3/cms']['web-dir'] ?? 'public'));
 
         $fs = new Filesystem();
         foreach ($packages as $package) {
