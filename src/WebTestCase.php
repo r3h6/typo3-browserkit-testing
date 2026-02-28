@@ -31,7 +31,7 @@ abstract class WebTestCase extends FunctionalTestCase
 
     public static function setUpBeforeClass(): void
     {
-        self::$projectRoot = realpath(\Composer\InstalledVersions::getRootPackage()['install_path']);
+        self::$projectRoot = dirname(ORIGINAL_ROOT);
     }
 
     public function setUp(): void
