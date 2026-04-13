@@ -20,6 +20,7 @@ use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Http\UploadedFile as Typo3UploadedFile;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 
@@ -225,6 +226,8 @@ final class Typo3Browser extends AbstractBrowser
         } finally {
             $this->makeSnapshot($typo3Request, $typo3Response);
         }
+
+        GeneralUtility::makeInstance(PersistenceManagerInterface::class)->persistAll();
 
         return new HttpFoundationResponse(
             (string)$typo3Response->getBody(),
