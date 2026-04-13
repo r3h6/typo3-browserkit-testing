@@ -6,6 +6,7 @@ namespace R3H6\Typo3BrowserkitTesting;
 
 use BlastCloud\Guzzler\Guzzler;
 use Psr\Http\Message\ResponseInterface;
+use R3H6\WebTestCase\EventListener\MessageLoggerListener;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Mailer\Transport\NullTransport;
 use Symfony\Component\Process\Process;
@@ -36,6 +37,7 @@ abstract class WebTestCase extends FunctionalTestCase
 
     public function setUp(): void
     {
+        MessageLoggerListener::setUp();
         $this->setUpDefaultConfiguration();
         $this->createClient(); // Initialize client early for context setup
 

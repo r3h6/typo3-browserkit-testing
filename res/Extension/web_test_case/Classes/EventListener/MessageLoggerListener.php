@@ -15,7 +15,12 @@ use TYPO3\CMS\Extbase\Event\Mvc\AfterRequestDispatchedEvent;
 
 class MessageLoggerListener
 {
+    private static ?MessageEvents $events = null;
 
+    public static function setUp(): void
+    {
+        self::$events = new MessageEvents();
+    }
 
     public function __invoke(BeforeMailerSentMessageEvent $event): void
     {
@@ -26,27 +31,26 @@ class MessageLoggerListener
         }
 
         $clonedMessage = clone $event->getMessage();
-        $clonedEnvelope = $event->getEnvelope() ? 
-            clone $event->getEnvelope() : 
+        $clonedEnvelope = $event->getEnvelope() ?
+            clone $event->getEnvelope() :
             Envelope::create($clonedMessage);
-        
+
         $symfonyEvent = new MessageEvent(
             $clonedMessage,
             $clonedEnvelope,
             $transport,
             false
         );
-        
+
         $this->getEvents()->add($symfonyEvent);
     }
 
     public function getEvents(): MessageEvents
     {
-        static $events = null;
-        if ($events === null) {
-            $events = new MessageEvents();
+        if (self::$events === null) {
+            throw new \RuntimeException('MessageEvents not initialized. Call MessageLoggerListener::setUp() before using the listener.', 1776107085);
         }
 
-        return $events;
+        return self::$events;
     }
 }
