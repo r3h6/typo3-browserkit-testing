@@ -31,7 +31,7 @@ abstract class WebTestCase extends FunctionalTestCase
 
     public static function setUpBeforeClass(): void
     {
-        self::$projectRoot = dirname(ORIGINAL_ROOT);
+        self::$projectRoot = str_replace('/.Build', '', dirname(ORIGINAL_ROOT));
     }
 
     public function setUp(): void
