@@ -9,7 +9,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Symfony\Component\BrowserKit\AbstractBrowser;
-use Symfony\Component\BrowserKit\Exception\LogicException;
 use Symfony\Component\BrowserKit\HttpBrowser;
 use Symfony\Component\BrowserKit\Request;
 use Symfony\Component\BrowserKit\Response;
@@ -17,10 +16,6 @@ use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\DomCrawler\Field\FileFormField;
 use Symfony\Component\DomCrawler\Form;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
-use Symfony\Component\Mime\Part\AbstractPart;
-use Symfony\Component\Mime\Part\DataPart;
-use Symfony\Component\Mime\Part\Multipart\FormDataPart;
-use Symfony\Component\Mime\Part\TextPart;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Http\UploadedFile as Typo3UploadedFile;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
@@ -205,35 +200,23 @@ final class Typo3Browser extends AbstractBrowser
     protected function doRequest(object $request): object
     {
         $typo3Request = (new InternalRequest($request->getUri()))->withMethod($request->getMethod());
-        $headers = $this->getHeaders($this->internalRequest);
-        [$body, $extraHeaders] = $this->getBodyAndExtraHeaders($request, $headers);
 
+        $headers = $this->getHeaders($request);
         foreach ($headers as $name => $value) {
             $typo3Request = $typo3Request->withHeader($name, $value);
         }
 
-        foreach ($extraHeaders as $name => $value) {
-            if (is_int($name)) {
-                $headerLine = is_array($value) ? (string)reset($value) : (string)$value;
-                if (!str_contains($headerLine, ':')) {
-                    continue;
-                }
-                [$rawName, $rawValue] = explode(':', $headerLine, 2);
-                $typo3Request = $typo3Request->withHeader(trim($rawName), trim($rawValue));
-                continue;
-            }
-            $typo3Request = $typo3Request->withHeader($name, $value);
+        $uploadedFiles = $this->createUploadedFiles($request->getFiles());
+        if ($uploadedFiles !== []) {
+            $typo3Request = $typo3Request->withUploadedFiles($uploadedFiles);
         }
 
+        $body = $this->prepareBody($request);
         if ($body !== null) {
             $typo3Request = $typo3Request->withBody(Utils::streamFor($body));
         }
 
         $typo3Request = $typo3Request->withCookieParams($request->getCookies());
-        $uploadedFiles = $this->createUploadedFiles($request->getFiles());
-        if ($uploadedFiles !== []) {
-            $typo3Request = $typo3Request->withUploadedFiles($uploadedFiles);
-        }
 
         $typo3Context = $this->context ?? new InternalRequestContext();
         $typo3Response = null;
@@ -358,43 +341,17 @@ final class Typo3Browser extends AbstractBrowser
         }
     }
 
-    // {{{ Copied from HttpBrowser
-
-    /**
-     * @return array [$body, $headers]
-     */
-    private function getBodyAndExtraHeaders(Request $request, array $headers): array
+    private function prepareBody(Request $request): ?string
     {
-        if (\in_array($request->getMethod(), ['GET', 'HEAD'], true) && !isset($headers['content-type'])) {
-            return ['', []];
+        if (\in_array($request->getMethod(), ['GET', 'HEAD'], true)) {
+            return null;
         }
 
-        if (!class_exists(AbstractPart::class)) {
-            throw new LogicException('You cannot pass non-empty bodies as the Mime component is not installed. Try running "composer require symfony/mime".');
-        }
-
-        if (null !== $content = $request->getContent()) {
-            if (isset($headers['content-type'])) {
-                return [$content, []];
-            }
-
-            $part = new TextPart($content, 'utf-8', 'plain', '8bit');
-
-            return [$part->bodyToString(), $part->getPreparedHeaders()->toArray()];
+        if ($content = $request->getContent()) {
+            return $content;
         }
 
         $fields = $request->getParameters();
-
-        if ($uploadedFiles = $this->getUploadedFiles($request->getFiles())) {
-            $part = new FormDataPart(array_replace_recursive($fields, $uploadedFiles));
-
-            return [$part->bodyToIterable(), $part->getPreparedHeaders()->toArray()];
-        }
-
-        if (!$fields) {
-            return ['', []];
-        }
-
         array_walk_recursive($fields, $caster = static function (&$v) use (&$caster) {
             if (\is_object($v)) {
                 if ($vars = get_object_vars($v)) {
@@ -406,8 +363,10 @@ final class Typo3Browser extends AbstractBrowser
             }
         });
 
-        return [http_build_query($fields, '', '&'), ['Content-Type' => 'application/x-www-form-urlencoded']];
+        return http_build_query($fields, '', '&');
     }
+
+    // {{{ Copied from HttpBrowser
 
     protected function getHeaders(Request $request): array
     {
@@ -433,32 +392,7 @@ final class Typo3Browser extends AbstractBrowser
         return $headers;
     }
 
-    /**
-     * Recursively go through the list. If the file has a tmp_name, convert it to a DataPart.
-     * Keep the original hierarchy.
-     */
-    private function getUploadedFiles(array $files): array
-    {
-        $uploadedFiles = [];
-        foreach ($files as $name => $file) {
-            if (!\is_array($file)) {
-                return $uploadedFiles;
-            }
-            if (!isset($file['tmp_name'])) {
-                $uploadedFiles[$name] = $this->getUploadedFiles($file);
-                continue;
-            }
-
-            if ($file['tmp_name'] === '') {
-                $uploadedFiles[$name] = new DataPart('', '');
-                continue;
-            }
-
-            $uploadedFiles[$name] = DataPart::fromPath($file['tmp_name'], $file['name']);
-        }
-
-        return $uploadedFiles;
-    }
+    // }}}
 
     /**
      * @param array<mixed> $files
@@ -475,7 +409,14 @@ final class Typo3Browser extends AbstractBrowser
             if (!\is_array($file)) {
                 continue;
             }
-            $normalized[$name] = $this->createUploadedFileFromSpec($file);
+            if (isset($file['tmp_name']) && !\is_array($file['tmp_name']) && $file['tmp_name'] === '') {
+                continue;
+            }
+            $result = $this->createUploadedFileFromSpec($file);
+            if (\is_array($result) && $result === []) {
+                continue;
+            }
+            $normalized[$name] = $result;
         }
 
         return $normalized;
@@ -493,6 +434,9 @@ final class Typo3Browser extends AbstractBrowser
         if (\is_array($spec['tmp_name'])) {
             $files = [];
             foreach ($spec['tmp_name'] as $key => $tmpName) {
+                if ((string)$tmpName === '') {
+                    continue;
+                }
                 $files[$key] = $this->createUploadedFileFromSpec([
                     'tmp_name' => $tmpName,
                     'name' => $spec['name'][$key] ?? null,
@@ -520,6 +464,4 @@ final class Typo3Browser extends AbstractBrowser
             isset($spec['type']) ? (string)$spec['type'] : null,
         );
     }
-
-    // }}}
 }
