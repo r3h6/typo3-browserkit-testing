@@ -52,11 +52,10 @@ class FileUploadTest extends WebTestCase
         $client->request('GET', '/page2');
 
         $filePath = __DIR__ . '/Fixtures/Uploads/sample.txt';
-        $client->setInputValue('input[name="tx_exampleextension_upload[uploadFile]"]', $filePath);
+        $client->setInputValue('#upload-file', $filePath);
         $crawler = $client->clickButton('Upload');
 
         self::assertSelectorTextContains('.upload-result', basename($filePath));
         self::assertSelectorTextContains('.upload-result', (string)filesize($filePath));
-        self::assertSelectorTextContains('.upload-result', sha1_file($filePath) ?: '');
     }
 }

@@ -1,18 +1,18 @@
 <f:flashMessages />
-<f:if condition="{file}">
+<f:if condition="{uploadForm}">
     <div class="upload-result">
-        <p>Uploaded <strong>{file.name}</strong>.</p>
-        <dl>
-            <dt>Size</dt>
-            <dd>{file.size} bytes</dd>
-            <dt>SHA1</dt>
-            <dd>{file.sha1}</dd>
-        </dl>
+        Uploads:
+        <ul>
+            <f:for each="{uploadForm.files}" as="file">
+                <li>{file.clientFilename}, {file.size} bytes</li>
+            </f:for>
+        </ul>
     </div>
 </f:if>
 
-<f:form action="upload" enctype="multipart/form-data" pluginName="Upload">
+<f:form action="upload" name="uploadForm" enctype="multipart/form-data" pluginName="Upload">
+    <f:form.hidden property="hidden" value="test123" />
     <label for="upload-file">Select a file</label>
-    <f:form.upload name="uploadFile" id="upload-file" />
-    <button type="submit">Upload</button>
+    <f:form.upload property="files" multiple="1" id="upload-file" />
+    <button type="submit" name="action">Upload</button>
 </f:form>

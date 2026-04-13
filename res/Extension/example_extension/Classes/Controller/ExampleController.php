@@ -8,7 +8,7 @@ use Psr\Log\LoggerAwareTrait;
 use GuzzleHttp\RequestOptions;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\UploadedFileInterface;
+use R3H6\ExampleExtension\Dto\UploadForm;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Http\RedirectResponse;
 use TYPO3\CMS\Core\Http\PropagateResponseException;
@@ -71,26 +71,10 @@ class ExampleController extends ActionController implements LoggerAwareInterface
         return $this->htmlResponse((string) $response->getBody());
     }
 
-    public function uploadAction(): ResponseInterface
+
+    public function uploadAction(?UploadForm $uploadForm = null): ResponseInterface
     {
-        $uploadedFile = $this->request->getUploadedFiles()['uploadFile'] ?? null;
-        $fileInfo = null;
-
-        if ($uploadedFile instanceof UploadedFileInterface && $uploadedFile->getError() === \UPLOAD_ERR_OK) {
-            $stream = $uploadedFile->getStream();
-            $stream->rewind();
-            $contents = $stream->getContents();
-            $stream->rewind();
-
-            $fileInfo = [
-                'name' => $uploadedFile->getClientFilename(),
-                'size' => $uploadedFile->getSize(),
-                'sha1' => sha1($contents),
-            ];
-        }
-
-        $this->view->assign('file', $fileInfo);
-
+        $this->view->assign('uploadForm', $uploadForm);
         return $this->htmlResponse();
     }
 }
