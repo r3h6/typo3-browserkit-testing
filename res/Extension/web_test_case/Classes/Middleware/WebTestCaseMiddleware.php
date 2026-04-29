@@ -32,6 +32,7 @@ class WebTestCaseMiddleware implements MiddlewareInterface, LoggerAwareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        self::$overrideStatus = null;
 
         // $request = $request->withCookieParams($_COOKIE);
         $this->logger->info('Request', [
