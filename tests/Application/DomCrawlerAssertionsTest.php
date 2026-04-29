@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use R3H6\Typo3BrowserkitTesting\WebTestCase;
 use R3H6\Typo3BrowserkitTesting\TestTransport;
 use R3H6\Typo3BrowserkitTesting\ServerParameters as ServerParameters;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\Transport\NullTransport;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 
@@ -179,5 +180,16 @@ class DomCrawlerAssertionsTest extends WebTestCase
         $crawler = $client->request('GET', '/page2');
         self::assertSelectorTextContains('body', 'The show must go on', "Response:\n" . $client->getResponse());
         self::assertSelectorTextContains('body', 'Redirected from', "Response:\n" . $client->getResponse());
+    }
+
+    #[Test]
+    public function extbaseResponseWithHttpStatus(): void
+    {
+        $this->importCSVDataSet(__DIR__ . '/Fixtures/Database/webtestcase_httpstatus.csv');
+
+        $client = $this->createClient();
+        $crawler = $client->request('GET', '/page2');
+        self::assertSelectorTextContains('body', 'http_bad_request', "Response:\n" . $client->getResponse());
+        self::assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
     }
 }

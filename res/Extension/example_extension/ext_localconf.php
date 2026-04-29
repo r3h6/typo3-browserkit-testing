@@ -56,3 +56,11 @@ ExtensionUtility::configurePlugin(
     [ExampleController::class => 'upload'],
     ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
 );
+
+ExtensionUtility::configurePlugin(
+    'ExampleExtension',
+    'HttpStatus',
+    [ExampleController::class => 'httpStatus'],
+    [ExampleController::class => 'httpStatus'],
+    ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
+);

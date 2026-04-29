@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace R3H6\WebTestCase\EventListener;
 
+use R3H6\WebTestCase\Middleware\WebTestCaseMiddleware;
 use TYPO3\CMS\Core\Http\RedirectResponse;
-use Psr\Http\Message\StreamFactoryInterface;
 use TYPO3\CMS\Core\Http\PropagateResponseException;
 use TYPO3\CMS\Extbase\Event\Mvc\AfterRequestDispatchedEvent;
 
@@ -17,6 +17,9 @@ class RedirectResponseHandler
         $uri = $response->getHeaderLine('Location');
         if ($uri) {
             throw new PropagateResponseException(new RedirectResponse($uri), 1686774861414);
+        }
+        if ($event->getResponse()->getStatusCode() >= 300) {
+            WebTestCaseMiddleware::overrideStatus($event->getResponse()->getStatusCode());
         }
     }
 }

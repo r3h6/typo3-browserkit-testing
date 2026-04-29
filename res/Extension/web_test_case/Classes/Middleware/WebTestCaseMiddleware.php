@@ -12,11 +12,23 @@ use Psr\Http\Server\MiddlewareInterface;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use TYPO3\CMS\Extbase\Core\Bootstrap;
 use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
+
 
 class WebTestCaseMiddleware implements MiddlewareInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
+
+    private static ?int $overrideStatus = null;
+
+    /**
+     * @see Bootstrap::handleFrontendRequest()
+     */
+    public static function overrideStatus(int $status): void
+    {
+        self::$overrideStatus = $status;
+    }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -40,8 +52,13 @@ class WebTestCaseMiddleware implements MiddlewareInterface, LoggerAwareInterface
             $response = $GLOBALS['TSFE']->fe_user->appendCookieToResponse($response);
         }
 
+        if (self::$overrideStatus !== null) {
+            $response = $response->withStatus(self::$overrideStatus);
+        }
+
         $this->logger->info('Response', [
             'statusCode' => $response->getStatusCode(),
+            'isOverrideStatus' => self::$overrideStatus !== null,
             'headers' => $response->getHeaders(),
             '_COOKIE' => $_COOKIE,
         ]);

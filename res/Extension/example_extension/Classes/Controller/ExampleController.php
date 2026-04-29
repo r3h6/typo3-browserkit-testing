@@ -9,6 +9,7 @@ use GuzzleHttp\RequestOptions;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Http\Message\ResponseInterface;
 use R3H6\ExampleExtension\Dto\UploadForm;
+use Symfony\Component\HttpFoundation\Response;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Http\RedirectResponse;
 use TYPO3\CMS\Core\Http\PropagateResponseException;
@@ -76,5 +77,10 @@ class ExampleController extends ActionController implements LoggerAwareInterface
     {
         $this->view->assign('uploadForm', $uploadForm);
         return $this->htmlResponse();
+    }
+
+    public function httpStatusAction(): ResponseInterface
+    {
+        return $this->htmlResponse('http_bad_request')->withStatus(Response::HTTP_BAD_REQUEST);
     }
 }
