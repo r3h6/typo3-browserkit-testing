@@ -237,6 +237,13 @@ abstract class WebTestCase extends FunctionalTestCase
 
     private function setUpSitesConfiguration(): void
     {
+        // Don't override a site configuration the test already declared explicitly
+        // (e.g. a dedicated fixture site instead of the real project sites) - both
+        // would otherwise try to link to the same 'typo3conf/sites' destination.
+        if (in_array('typo3conf/sites', $this->pathsToLinkInTestInstance, true)) {
+            return;
+        }
+
         $fs = new Filesystem();
 
         $sitesPath = self::$projectRoot . '/config/sites';
@@ -257,28 +264,33 @@ abstract class WebTestCase extends FunctionalTestCase
             default => throw new \InvalidArgumentException('Unsupported package type: ' . $packageType),
         };
         $extensionsToLoad = [];
+        $packageManager = new \TYPO3\TestingFramework\Composer\ComposerPackageManager();
         $packages = \Composer\InstalledVersions::getInstalledPackagesByType($packageType);
-        $rootComposer = json_decode(file_get_contents(self::$projectRoot . '/composer.json'), true);
-        $vendorDir = realpath(self::$projectRoot . '/' . ($rootComposer['config']['vendor-dir'] ?? 'vendor'));
-        if (!is_dir($vendorDir)) {
-            throw new \RuntimeException('Vendor directory not found: ' . $vendorDir);
-        }
-        $webDir = realpath(self::$projectRoot . '/' . ($rootComposer['extra']['typo3/cms']['web-dir'] ?? 'public'));
-
-        $fs = new Filesystem();
         foreach ($packages as $package) {
-            $extensionPath = \Composer\InstalledVersions::getInstallPath($package);
-            $composerJsonPath = realpath($extensionPath . '/composer.json');
-            $finalPathPrefix = $pathPrefix;
-            if (!str_starts_with($composerJsonPath, $vendorDir)) {
-                $finalPathPrefix = $fs->makePathRelative(dirname(dirname($composerJsonPath)), $webDir);
+            $extensionPath = realpath(\Composer\InstalledVersions::getInstallPath($package));
+            if ($extensionPath === false || !is_file($extensionPath . '/composer.json')) {
+                continue;
             }
-            $json = json_decode(file_get_contents($composerJsonPath), true);
+            $json = json_decode(file_get_contents($extensionPath . '/composer.json'), true);
             $extensionKey = $json['extra']['typo3/cms']['extension-key'] ?? null;
             if ($extensionKey === null) {
                 continue;
             }
-            $extensionsToLoad[] = $finalPathPrefix . $extensionKey;
+            // ComposerPackageManager silently drops any package from its extension-key lookup
+            // map whose own composer "replace" entry targets its own package name (a common
+            // TER-migration pattern, used by all intersim/* packages), because it treats that
+            // entry the same as a package being replaced by another one. Both Testbase's
+            // extension symlinking and its PackageStates.php generation resolve test extensions
+            // through that map by extension key, so a dropped package would otherwise be
+            // unresolvable there and fail with "Test extension path ... not found" or get
+            // symlinked/registered under the wrong (directory-guessed) name. Resolving through
+            // the absolute install path here forces ComposerPackageManager to register the
+            // package under its real extension key as a side effect, healing the map before
+            // any other code needs to look it up - so plain "typo3conf/ext/<key>" (or
+            // "typo3/sysext/<key>") keeps working correctly everywhere afterwards, the same as
+            // for any package the map already knew about.
+            $packageManager->getPackageInfoWithFallback($extensionPath);
+            $extensionsToLoad[] = $pathPrefix . $extensionKey;
         }
         return $extensionsToLoad;
     }
